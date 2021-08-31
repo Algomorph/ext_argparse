@@ -13,16 +13,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ================================================================
-from ext_argparse.argument import Argument
-import argparse as ap
+from typing import Type, List
+
+from ext_argparse.parameter import Parameter
+from ext_argparse.param_collection import ParameterEnum
+import argparse
 import os.path
 import re
-from yaml import load, dump
-
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+from ruamel.yaml import YAML
 
 
 class ArgumentProcessor(object):
@@ -30,19 +28,19 @@ class ArgumentProcessor(object):
     A class for processing command-line arguments to a program.
     """
 
-    def __init__(self, program_arguments_enum):
-        self.arg_enum = program_arguments_enum
+    def __init__(self, parameter_enum: Type[ParameterEnum]):
+        self.parameter_enum = parameter_enum
         self.__generate_missing_shorthands()
         self.setting_file_location_args = self.__generate_setting_file_location_arg_collection()
 
     # ================= SETTING FILE STORAGE ==========================================================================#
-    settings_file = Argument(None, '?', str, 'store',
-                             "File (absolute or relative-to-execution path) where to save and/or " +
-                             "load settings for the program in YAML format.",
-                             console_only=True, required=False)
-    save_settings = Argument(False, '?', 'bool_flag', 'store_true',
-                             "Save (or update) setting file.",
-                             console_only=True, required=False)
+    settings_file = Parameter(None, '?', str, 'store',
+                              "File (absolute or relative-to-execution path) where to save and/or " +
+                              "load settings for the program in YAML format.",
+                              console_only=True, required=False)
+    save_settings = Parameter(False, '?', 'bool_flag', 'store_true',
+                              "Save (or update) setting file.",
+                              console_only=True, required=False)
     settings_file_name = "settings_file"
     settings_file_shorthand = "-sf"
     save_settings_name = "save_settings"
@@ -50,15 +48,15 @@ class ArgumentProcessor(object):
 
     def __generate_setting_file_location_arg_collection(self):
         sfl_arg_collection = set()
-        for item in self.arg_enum:
-            if item.value.setting_file_location:
+        for item in self.parameter_enum:
+            if item.parameter.setting_file_location:
                 sfl_arg_collection.add(item.name)
         return sfl_arg_collection
 
     def __generate_missing_shorthands(self):
-        for item in self.arg_enum:
-            if item.value.shorthand is None:
-                item.value.shorthand = "-" + "".join([item[1] for item in re.findall(r"(:?^|_)(\w)", item.name)])
+        for item in self.parameter_enum:
+            if item.parameter.shorthand is None:
+                item.parameter.shorthand = "-" + "".join([item[1] for item in re.findall(r"(:?^|_)(\w)", item.name)])
 
     def generate_defaults_dict(self):
         """
@@ -66,8 +64,8 @@ class ArgumentProcessor(object):
         @return: dictionary of Setting defaults
         """
         defaults_dict = {}
-        for item in self.arg_enum:
-            defaults_dict[item.name] = item.value.default
+        for item in self.parameter_enum:
+            defaults_dict[item.name] = item.parameter.default
         defaults_dict[ArgumentProcessor.settings_file_name] = ArgumentProcessor.settings_file.default
         defaults_dict[ArgumentProcessor.save_settings_name] = ArgumentProcessor.save_settings.default
         return defaults_dict
@@ -87,27 +85,28 @@ class ArgumentProcessor(object):
 
         """
         if console_only:
-            parser = ap.ArgumentParser(description=description, formatter_class=ap.RawDescriptionHelpFormatter,
-                                       add_help=False)
+            parser = argparse.ArgumentParser(description=description,
+                                             formatter_class=argparse.RawDescriptionHelpFormatter,
+                                             add_help=False)
         else:
             if parents is None:
                 raise ValueError("A conf-file+console parser requires at least a console-only parser as a parent.")
-            parser = ap.ArgumentParser(parents=parents)
+            parser = argparse.ArgumentParser(parents=parents)
 
-        for enum_entry in self.arg_enum:
-            if (enum_entry.value.console_only and console_only) or (
-                    not enum_entry.value.console_only and not console_only):
-                if enum_entry.value.type == 'bool_flag':
-                    parser.add_argument('--' + enum_entry.name, enum_entry.value.shorthand,
-                                        action=enum_entry.value.action,
-                                        default=defaults[enum_entry.name], required=enum_entry.value.required,
-                                        help=enum_entry.value.help)
+        for enum_entry in self.parameter_enum:
+            if (enum_entry.parameter.console_only and console_only) or (
+                    not enum_entry.parameter.console_only and not console_only):
+                if enum_entry.parameter.type == 'bool_flag':
+                    parser.add_argument('--' + enum_entry.name, enum_entry.parameter.shorthand,
+                                        action=enum_entry.parameter.action,
+                                        default=defaults[enum_entry.name], required=enum_entry.parameter.required,
+                                        help=enum_entry.parameter.help)
                 else:
-                    parser.add_argument('--' + enum_entry.name, enum_entry.value.shorthand,
-                                        action=enum_entry.value.action,
-                                        type=enum_entry.value.type, nargs=enum_entry.value.nargs,
-                                        required=enum_entry.value.required,
-                                        default=defaults[enum_entry.name], help=enum_entry.value.help)
+                    parser.add_argument('--' + enum_entry.name, enum_entry.parameter.shorthand,
+                                        action=enum_entry.parameter.action,
+                                        type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
+                                        required=enum_entry.parameter.required,
+                                        default=defaults[enum_entry.name], help=enum_entry.parameter.help)
         if console_only:
             # add non-enum args
             enum_entry = ArgumentProcessor.settings_file
@@ -125,25 +124,31 @@ class ArgumentProcessor(object):
         return parser
 
     def fill_enum_values(self, setting_dict):
-        for enum_entry in self.arg_enum:
+        for enum_entry in self.parameter_enum:
             if enum_entry.name in setting_dict:
-                enum_entry.__dict__["v"] = setting_dict[enum_entry.name]
+                enum_entry.__dict__["argument"] = setting_dict[enum_entry.name]
 
 
-def process_arguments(program_arguments_enum, program_help_description):
+def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_description: str,
+                      argv: List[str] = None) -> argparse.Namespace:
     argproc = ArgumentProcessor(program_arguments_enum)
     defaults = argproc.generate_defaults_dict()
     conf_parser = \
         argproc.generate_parser(defaults, console_only=True, description=program_help_description)
 
     # ============== STORAGE/RETRIEVAL OF CONSOLE SETTINGS ===========================================#
-    args, remaining_argv = conf_parser.parse_known_args()
+    args, remaining_argv = conf_parser.parse_known_args(argv)
     defaults[ArgumentProcessor.save_settings_name] = args.save_settings
+
+    yaml = YAML(typ='safe')
+    yaml.indent = 4
+    yaml.default_flow_style = False
+
     if args.settings_file:
         defaults[ArgumentProcessor.settings_file_name] = args.settings_file
         if os.path.isfile(args.settings_file):
             file_stream = open(args.settings_file, "r", encoding="utf-8")
-            config_defaults = load(file_stream, Loader=Loader)
+            config_defaults = yaml.load(file_stream)
             file_stream.close()
             if config_defaults:
                 for key, value in config_defaults.items():
@@ -159,7 +164,7 @@ def process_arguments(program_arguments_enum, program_help_description):
     if args.settings_file and os.path.isfile(args.settings_file):
         for key in args.__dict__.keys():
             if key in argproc.setting_file_location_args and args.__dict__[key] == \
-                    Argument.setting_file_location_wildcard:
+                    Parameter.setting_file_location_wildcard:
                 args.__dict__[key] = os.path.dirname(args.settings_file)
 
     setting_dict = vars(args)
@@ -171,7 +176,8 @@ def process_arguments(program_arguments_enum, program_help_description):
         file_name = setting_dict[ArgumentProcessor.save_settings_name]
         del setting_dict[ArgumentProcessor.save_settings_name]
         del setting_dict[ArgumentProcessor.settings_file_name]
-        dump(setting_dict, file_stream, Dumper=Dumper, indent=3, default_flow_style=False)
+
+        yaml.dump(setting_dict, file_stream)
         file_stream.close()
         setting_dict[ArgumentProcessor.save_settings_name] = file_name
         setting_dict[ArgumentProcessor.settings_file_name] = True

@@ -13,3 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ================================================================
+__title__ = "ext_argparse"
+__author__ = "Gregory Kramida"
+__license__ = "Apache License Version 2.0"
+__js__ = None
+__js_url__ = None
+
+from ext_argparse.argproc import process_arguments
+from ext_argparse.parameter import Parameter
+from ext_argparse.param_collection import ParameterEnum

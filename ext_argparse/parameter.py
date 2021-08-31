@@ -17,7 +17,7 @@
 value_dict = {}
 
 
-class Argument(object):
+class Parameter(object):
     setting_file_location_wildcard = '!settings_file_location'
 
     def __init__(self, default,
@@ -30,7 +30,7 @@ class Argument(object):
                  shorthand=None,
                  setting_file_location=False):
         """
-        @rtype: Argument
+        @rtype: Parameter
         @type default: object
         @param default: the default value
         @type nargs: int | str
@@ -56,8 +56,9 @@ class Argument(object):
         self.nargs = nargs
         self.type = arg_type
         self.action = action
+        self.argument = None
         if setting_file_location:
-            self.help = arg_help + ("| If set to '" + Argument.setting_file_location_wildcard + "' and a " +
+            self.help = arg_help + ("| If set to '" + Parameter.setting_file_location_wildcard + "' and a " +
                                     " settings file is provided, will be set to the location of the settings file.")
         else:
             self.help = arg_help
