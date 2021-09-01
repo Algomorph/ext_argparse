@@ -6,6 +6,11 @@ import pathlib
 from ext_argparse import Parameter, ParameterEnum, process_arguments
 
 
+class SequenceHandlingParameters(ParameterEnum):
+    stop_before_index = Parameter(arg_type=int, default=10000000)
+    start_from_index = Parameter(arg_type=int, default=0)
+
+
 class Parameters(ParameterEnum):
     # optimizer settings
     tikhonov_term_enabled = Parameter(action="store_true", default=False, arg_type='bool_flag')
@@ -19,7 +24,7 @@ class Parameters(ParameterEnum):
     data_term_amplifier = Parameter(arg_type=float, default=1.0)
     tikhonov_strength = Parameter(arg_type=float, default=0.2)
     kernel_size = Parameter(arg_type=int, default=7)
-    kernel_strength = Parameter(arg_type=float, default=0.1, shorthand="-kst")
+    kernel_strength = Parameter(arg_type=float, default=0.1, acronym="-kst")
     resampling_strategy = Parameter(arg_type=str, default="NEAREST_AND_AVERAGE",
                                     arg_help="Strategy for upsampling the warps and downsampling the pyramid"
                                              "in the C++ version of the optimizer, can be "
@@ -32,8 +37,9 @@ class Parameters(ParameterEnum):
     # other experiment settings
     dataset_number = Parameter(arg_type=int, default=1)
     implementation_language = Parameter(arg_type=str, default="CPP")
-    stop_before_index = Parameter(arg_type=int, default=10000000)
-    start_from_index = Parameter(arg_type=int, default=0)
+
+    sequence_handling = SequenceHandlingParameters
+
     output_path = Parameter(arg_type=str, default="output/ho")
     generation_case_file = \
         Parameter(arg_type=str, default=None,

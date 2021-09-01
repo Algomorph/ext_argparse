@@ -23,12 +23,12 @@ class Parameter(object):
     def __init__(self, default,
                  nargs='?',
                  arg_type=str,
-                 action='store',
-                 arg_help="Documentation N/A",
-                 console_only=False,
-                 required=False,
-                 shorthand=None,
-                 setting_file_location=False):
+                 action: str = 'store',
+                 arg_help: str = "Documentation N/A",
+                 console_only: bool = False,
+                 required: bool = False,
+                 acronym=None,
+                 setting_file_location: bool = False):
         """
         @rtype: Parameter
         @type default: object
@@ -45,10 +45,12 @@ class Parameter(object):
         @param console_only: whether the argument is for console use only or for both config file & console
         @type required: bool
         @param required: whether the argument is required
-        @type shorthand: str
-        @param shorthand: shorthand to use for argument in console
+        @type acronym: str
+        @param acronym: acronym to use in the shorthand for the argument in the console
         @type setting_file_location: bool
-        @param setting_file_location: whether to
+        @param setting_file_location: whether this parameter can use the setting file location wildcard
+        (in which case, when set to the wildcard, the parameter value resolves to the full path to the settings
+        file instead.)
         """
         self.default = default
         self.required = required
@@ -64,7 +66,7 @@ class Parameter(object):
             self.help = arg_help
         self.setting_file_location = setting_file_location
 
-        if shorthand is None:
+        if acronym is None:
             self.shorthand = None
         else:
-            self.shorthand = "-" + shorthand
+            self.shorthand = acronym
