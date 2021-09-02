@@ -15,6 +15,7 @@
 #  ================================================================
 
 value_dict = {}
+import argparse
 
 
 class Parameter(object):
@@ -65,8 +66,7 @@ class Parameter(object):
         else:
             self.help = arg_help
         self.setting_file_location = setting_file_location
+        self.acronym = acronym
 
-        if acronym is None:
-            self.shorthand = None
-        else:
-            self.shorthand = acronym
+    def get_type(self):
+        return self.type
