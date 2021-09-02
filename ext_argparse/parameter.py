@@ -29,7 +29,8 @@ class Parameter(object):
                  console_only: bool = False,
                  required: bool = False,
                  acronym=None,
-                 setting_file_location: bool = False):
+                 setting_file_location: bool = False,
+                 value_map=None):
         """
         @rtype: Parameter
         @type default: object
@@ -52,6 +53,8 @@ class Parameter(object):
         @param setting_file_location: whether this parameter can use the setting file location wildcard
         (in which case, when set to the wildcard, the parameter value resolves to the full path to the settings
         file instead.)
+        @param value_map: if the arg_type is set to 'enum', used to map the value of the argument to the actual value
+        that the parameter will be set to, ignored otherwise.
         """
         self.default = default
         self.required = required
@@ -67,6 +70,7 @@ class Parameter(object):
             self.help = arg_help
         self.setting_file_location = setting_file_location
         self.acronym = acronym
+        self.value_map = value_map
 
     def get_type(self):
         return self.type
