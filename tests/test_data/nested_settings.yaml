@@ -1,0 +1,30 @@
+float_param: 0.2
+group_a:
+    float_param: 0.4
+    int_param: 8
+    string_param: Istanbul
+group_b:
+    float_param: 0.1
+    int_param: 8
+    string_param: Istanbul
+group_c:
+    float_param: 0.1
+    int_param: 9
+    string_param: Constantinople
+group_d:
+    group_a:
+        float_param: 0.32
+        int_param: 8
+        string_param: Istanbul
+    group_b:
+        float_param: 0.1
+        int_param: 8
+        string_param: Liverpool
+    group_c:
+        float_param: 0.1
+        int_param: 8
+        path_param: '!settings_file_location'
+        string_param: Istanbul
+    int_param: 9
+int_param: 1
+string_param: Istanbul

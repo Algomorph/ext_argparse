@@ -9,6 +9,7 @@ gradient_kernel_enabled: false
 implementation_language: CPP
 kernel_size: 7
 kernel_strength: 0.1
+kst: 0.1
 maximum_chunk_size: 10
 maximum_iteration_count: 1000
 maximum_warp_update_threshold: 0.007
