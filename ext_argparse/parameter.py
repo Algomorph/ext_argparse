@@ -16,9 +16,6 @@
 import enum
 from typing import Union
 
-value_dict = {}
-import argparse
-
 
 class Parameter(object):
     setting_file_location_wildcard = '!settings_file_location'
@@ -30,7 +27,7 @@ class Parameter(object):
                  arg_help: str = "Documentation N/A",
                  console_only: bool = False,
                  required: bool = False,
-                 acronym=None,
+                 shorthand=None,
                  setting_file_location: bool = False):
         """
         @rtype: Parameter
@@ -48,8 +45,8 @@ class Parameter(object):
         @param console_only: whether the argument is for console use only or for both config file & console
         @type required: bool
         @param required: whether the argument is required
-        @type acronym: str
-        @param acronym: acronym to use in the shorthand for the argument in the console
+        @type shorthand: str
+        @param shorthand: acronym to use in the shorthand for the argument in the console
         @type setting_file_location: bool
         @param setting_file_location: whether this parameter can use the setting file location wildcard
         (in which case, when set to the wildcard, the parameter value resolves to the full path to the settings
@@ -68,7 +65,7 @@ class Parameter(object):
         else:
             self.help = arg_help
         self.setting_file_location = setting_file_location
-        self.acronym = acronym
+        self.shorthand = shorthand
         self.value_map = None
         if type(self.type) == enum.EnumMeta:
             self.value_map = self.type._member_map_

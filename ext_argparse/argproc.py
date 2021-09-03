@@ -80,7 +80,7 @@ class ArgumentProcessor(object):
 
     @staticmethod
     def __get_setting_file_location_args_from_item(item, sfl_arg_collection: set, base_name=""):
-        if item.parameter.get_type() is 'parameter_enum':
+        if item.parameter.type is 'parameter_enum':
             for sub_item in item.parameter:
                 ArgumentProcessor.__get_setting_file_location_args_from_item(sub_item, sfl_arg_collection,
                                                                              base_name + item.name + ".")
@@ -95,12 +95,12 @@ class ArgumentProcessor(object):
 
     @staticmethod
     def __add_shorthand_for_param_enum_item(enum_entry, base_acronym: str = "") -> None:
-        if enum_entry.parameter.get_type() is 'parameter_enum':
+        if enum_entry.parameter.type is 'parameter_enum':
             sub_enum_acronym = generate_lc_acronym_from_snake_case(enum_entry.name)
             for sub_item in enum_entry.parameter:
                 ArgumentProcessor.__add_shorthand_for_param_enum_item(sub_item, base_acronym + sub_enum_acronym + ".")
-        elif enum_entry.parameter.acronym is None:
-            enum_entry.parameter.acronym = base_acronym + generate_lc_acronym_from_snake_case(enum_entry.name)
+        elif enum_entry.parameter.shorthand is None:
+            enum_entry.parameter.shorthand = base_acronym + generate_lc_acronym_from_snake_case(enum_entry.name)
 
     def __generate_missing_shorthands(self):
         for item in self.parameter_enum:
@@ -108,7 +108,7 @@ class ArgumentProcessor(object):
 
     @staticmethod
     def __add_to_defaults_dict(enum_entry, defaults_dict: dict, base_name: str = ""):
-        if enum_entry.parameter.get_type() is 'parameter_enum':
+        if enum_entry.parameter.type is 'parameter_enum':
             for sub_enum_item in enum_entry.parameter:
                 ArgumentProcessor.__add_to_defaults_dict(sub_enum_item, defaults_dict,
                                                          base_name + enum_entry.name + ".")
@@ -132,7 +132,7 @@ class ArgumentProcessor(object):
                                              parser: argparse.ArgumentParser, defaults: dict, console_only: bool,
                                              base_name: str = "") \
             -> None:
-        if enum_entry.parameter.get_type() == 'parameter_enum':
+        if enum_entry.parameter.type == 'parameter_enum':
             for sub_enum_entry in enum_entry.parameter:
                 ArgumentProcessor.__add_parameter_enum_entry_to_parser(
                     sub_enum_entry, parser, defaults, console_only,
@@ -141,15 +141,15 @@ class ArgumentProcessor(object):
         elif (enum_entry.parameter.console_only and console_only) or \
                 (not enum_entry.parameter.console_only and not console_only):
             # TODO: transition to match statement here when the Python requirements is at or above 3.10
-            if enum_entry.parameter.get_type() == 'bool_flag':
-                parser.add_argument("-" + enum_entry.parameter.acronym,
+            if enum_entry.parameter.type == 'bool_flag':
+                parser.add_argument("-" + enum_entry.parameter.shorthand,
                                     '--' + base_name + enum_entry.name,
                                     action=enum_entry.parameter.action,
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
-            elif enum_entry.parameter.get_type() == enum.EnumMeta:
-                parser.add_argument("-" + enum_entry.parameter.acronym,
+            elif enum_entry.parameter.type == enum.EnumMeta:
+                parser.add_argument("-" + enum_entry.parameter.shorthand,
                                     '--' + base_name + enum_entry.name,
                                     action=enum_entry.parameter.action,
                                     type=str, nargs=enum_entry.parameter.nargs,
@@ -157,7 +157,7 @@ class ArgumentProcessor(object):
                                     default=defaults[base_name + enum_entry.name],
                                     help=enum_entry.parameter.help)
             else:
-                parser.add_argument("-" + enum_entry.parameter.acronym,
+                parser.add_argument("-" + enum_entry.parameter.shorthand,
                                     '--' + base_name + enum_entry.name,
                                     action=enum_entry.parameter.action,
                                     type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
@@ -215,7 +215,7 @@ class ArgumentProcessor(object):
     def __fill_parameter_enum_values(argument_dictionary: dict, parameter_enum: Type[ParameterEnum],
                                      base_name: str = ""):
         for enum_entry in parameter_enum:
-            if enum_entry.parameter.get_type() == 'parameter_enum':
+            if enum_entry.parameter.type == 'parameter_enum':
                 ArgumentProcessor.__fill_parameter_enum_values(argument_dictionary, enum_entry.parameter,
                                                                base_name + enum_entry.name + ".")
             else:
@@ -228,9 +228,9 @@ class ArgumentProcessor(object):
 
     @staticmethod
     def __post_process_enum_arg(enum_entry):
-        if enum_entry.parameter.get_type() == enum.EnumMeta:
+        if enum_entry.parameter.type == enum.EnumMeta:
             enum_entry.__dict__["argument"] = enum_entry.parameter.value_map[enum_entry.value]
-        elif enum_entry.parameter.get_type() == 'parameter_enum':
+        elif enum_entry.parameter.type == 'parameter_enum':
             for sub_enum_entry in enum_entry.parameter:
                 ArgumentProcessor.__post_process_enum_arg(sub_enum_entry)
 

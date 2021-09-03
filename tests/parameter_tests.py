@@ -24,7 +24,7 @@ class Parameters(ParameterEnum):
     data_term_amplifier = Parameter(arg_type=float, default=1.0)
     tikhonov_strength = Parameter(arg_type=float, default=0.2)
     kernel_size = Parameter(arg_type=int, default=7)
-    kernel_strength = Parameter(arg_type=float, default=0.1, acronym="-kst")
+    kernel_strength = Parameter(arg_type=float, default=0.1, shorthand="-kst")
     resampling_strategy = Parameter(arg_type=str, default="NEAREST_AND_AVERAGE",
                                     arg_help="Strategy for upsampling the warps and downsampling the pyramid"
                                              "in the C++ version of the optimizer, can be "

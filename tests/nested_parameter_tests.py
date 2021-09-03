@@ -67,11 +67,11 @@ class BaseLevelParams(ParameterEnum):
 def test_default_nested_parameters():
     process_arguments(BaseLevelParams, "Test parameter parser", [])
     assert BaseLevelParams.float_param.value == 0.1
-    assert BaseLevelParams.group_a.parameter.float_param.value == 0.1
-    assert BaseLevelParams.group_c.parameter.int_param.value == 9
-    assert BaseLevelParams.group_d.parameter.int_param.value == 5
-    assert BaseLevelParams.group_d.parameter.group_a.parameter.float_param.value == 0.1
-    assert BaseLevelParams.group_d.parameter.group_b.parameter.string_param.value == "Kabul"
+    assert BaseLevelParams.group_a.float_param.value == 0.1
+    assert BaseLevelParams.group_c.int_param.value == 9
+    assert BaseLevelParams.group_d.int_param.value == 5
+    assert BaseLevelParams.group_d.group_a.parameter.float_param.value == 0.1
+    assert BaseLevelParams.group_d.group_b.parameter.string_param.value == "Kabul"
 
 
 def test_full_nested_parameters():
@@ -86,11 +86,11 @@ def test_full_nested_parameters():
     ])
     assert BaseLevelParams.float_param.value == 0.2
     assert BaseLevelParams.int_param.value == 1
-    assert BaseLevelParams.group_a.parameter.float_param.value == 0.4
-    assert BaseLevelParams.group_c.parameter.string_param.value == "Constantinople"
-    assert BaseLevelParams.group_d.parameter.int_param.value == 9
-    assert BaseLevelParams.group_d.parameter.group_a.parameter.float_param.value == 0.32
-    assert BaseLevelParams.group_d.parameter.group_b.parameter.string_param.value == "Liverpool"
+    assert BaseLevelParams.group_a.float_param.value == 0.4
+    assert BaseLevelParams.group_c.string_param.value == "Constantinople"
+    assert BaseLevelParams.group_d.int_param.value == 9
+    assert BaseLevelParams.group_d.group_a.parameter.float_param.value == 0.32
+    assert BaseLevelParams.group_d.group_b.parameter.string_param.value == "Liverpool"
 
 
 def test_shorthand_nested_parameters():
@@ -105,11 +105,11 @@ def test_shorthand_nested_parameters():
     ])
     assert BaseLevelParams.float_param.value == 0.2
     assert BaseLevelParams.int_param.value == 1
-    assert BaseLevelParams.group_a.parameter.float_param.value == 0.4
-    assert BaseLevelParams.group_c.parameter.string_param.value == "Constantinople"
-    assert BaseLevelParams.group_d.parameter.int_param.value == 9
-    assert BaseLevelParams.group_d.parameter.group_a.parameter.float_param.value == 0.32
-    assert BaseLevelParams.group_d.parameter.group_b.parameter.string_param.value == "Liverpool"
+    assert BaseLevelParams.group_a.float_param.value == 0.4
+    assert BaseLevelParams.group_c.string_param.value == "Constantinople"
+    assert BaseLevelParams.group_d.int_param.value == 9
+    assert BaseLevelParams.group_d.group_a.float_param.value == 0.32
+    assert BaseLevelParams.group_d.group_b.string_param.value == "Liverpool"
 
 
 def test_nested_parameter_save_load():
@@ -129,16 +129,16 @@ def test_nested_parameter_save_load():
     ])
     assert BaseLevelParams.float_param.value == 0.2
     assert BaseLevelParams.int_param.value == 1
-    assert BaseLevelParams.group_a.parameter.float_param.value == 0.4
-    assert BaseLevelParams.group_c.parameter.string_param.value == "Constantinople"
-    assert BaseLevelParams.group_d.parameter.int_param.value == 9
-    assert BaseLevelParams.group_d.parameter.group_a.parameter.float_param.value == 0.32
-    assert BaseLevelParams.group_d.parameter.group_b.parameter.string_param.value == "Liverpool"
-    assert BaseLevelParams.group_d.parameter.group_c.parameter.path_param.value == test_data_dir
+    assert BaseLevelParams.group_a.float_param.value == 0.4
+    assert BaseLevelParams.group_c.string_param.value == "Constantinople"
+    assert BaseLevelParams.group_d.int_param.value == 9
+    assert BaseLevelParams.group_d.group_a.float_param.value == 0.32
+    assert BaseLevelParams.group_d.group_b.string_param.value == "Liverpool"
+    assert BaseLevelParams.group_d.group_c.path_param.value == test_data_dir
 
     # load defaults
     process_arguments(BaseLevelParams, "Test parameter parser", [])
-    assert BaseLevelParams.group_d.parameter.group_c.parameter.path_param.value == "."
+    assert BaseLevelParams.group_d.group_c.path_param.value == "."
 
     process_arguments(BaseLevelParams, "Test parameter parser", [
         f"--settings_file={output_settings_path}",
@@ -146,7 +146,7 @@ def test_nested_parameter_save_load():
     ])
 
     assert BaseLevelParams.int_param.value == 2
-    assert BaseLevelParams.group_d.parameter.group_c.parameter.path_param.value == test_data_dir
+    assert BaseLevelParams.group_d.group_c.path_param.value == test_data_dir
 
     # test that settings file was not overwritten
     process_arguments(BaseLevelParams, "Test parameter parser", [
