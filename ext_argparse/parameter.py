@@ -13,6 +13,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ================================================================
+import enum
+from typing import Union
 
 value_dict = {}
 import argparse
@@ -23,14 +25,13 @@ class Parameter(object):
 
     def __init__(self, default,
                  nargs='?',
-                 arg_type=str,
+                 arg_type: Union[str, type, enum.EnumMeta] = str,
                  action: str = 'store',
                  arg_help: str = "Documentation N/A",
                  console_only: bool = False,
                  required: bool = False,
                  acronym=None,
-                 setting_file_location: bool = False,
-                 value_map=None):
+                 setting_file_location: bool = False):
         """
         @rtype: Parameter
         @type default: object
@@ -53,8 +54,6 @@ class Parameter(object):
         @param setting_file_location: whether this parameter can use the setting file location wildcard
         (in which case, when set to the wildcard, the parameter value resolves to the full path to the settings
         file instead.)
-        @param value_map: if the arg_type is set to 'enum', used to map the value of the argument to the actual value
-        that the parameter will be set to, ignored otherwise.
         """
         self.default = default
         self.required = required
@@ -70,7 +69,10 @@ class Parameter(object):
             self.help = arg_help
         self.setting_file_location = setting_file_location
         self.acronym = acronym
-        self.value_map = value_map
+        self.value_map = None
+        if type(self.type) == enum.EnumMeta:
+            self.value_map = self.type._member_map_
+            self.help = arg_help + "| Can be set to one of: " + str(list(self.value_map.keys()))
 
     def get_type(self):
         return self.type

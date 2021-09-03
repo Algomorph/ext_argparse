@@ -20,6 +20,7 @@ from ext_argparse.param_enum import ParameterEnum
 import argparse
 import os.path
 import re
+import enum
 from ruamel.yaml import YAML
 
 
@@ -147,20 +148,22 @@ class ArgumentProcessor(object):
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
-            elif enum_entry.parameter.get_type() == 'enum':
+            elif enum_entry.parameter.get_type() == enum.EnumMeta:
                 parser.add_argument("-" + enum_entry.parameter.acronym,
                                     '--' + base_name + enum_entry.name,
                                     action=enum_entry.parameter.action,
                                     type=str, nargs=enum_entry.parameter.nargs,
                                     required=enum_entry.parameter.required,
-                                    default=defaults[base_name + enum_entry.name], help=enum_entry.parameter.help)
+                                    default=defaults[base_name + enum_entry.name],
+                                    help=enum_entry.parameter.help)
             else:
                 parser.add_argument("-" + enum_entry.parameter.acronym,
                                     '--' + base_name + enum_entry.name,
                                     action=enum_entry.parameter.action,
                                     type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
                                     required=enum_entry.parameter.required,
-                                    default=defaults[base_name + enum_entry.name], help=enum_entry.parameter.help)
+                                    default=defaults[base_name + enum_entry.name],
+                                    help=enum_entry.parameter.help)
 
     def generate_parser(self, defaults: dict, console_only: bool = False, description: str = "Description N/A",
                         parents: Union[List[argparse.ArgumentParser], None] = None) -> argparse.ArgumentParser:
@@ -209,18 +212,31 @@ class ArgumentProcessor(object):
         return parser
 
     @staticmethod
-    def __fill_enum_values(argument_dictionary: dict, parameter_enum: Type[ParameterEnum], base_name: str = ""):
+    def __fill_parameter_enum_values(argument_dictionary: dict, parameter_enum: Type[ParameterEnum],
+                                     base_name: str = ""):
         for enum_entry in parameter_enum:
             if enum_entry.parameter.get_type() == 'parameter_enum':
-                ArgumentProcessor.__fill_enum_values(argument_dictionary, enum_entry.parameter,
-                                                     base_name + enum_entry.name + ".")
+                ArgumentProcessor.__fill_parameter_enum_values(argument_dictionary, enum_entry.parameter,
+                                                               base_name + enum_entry.name + ".")
             else:
                 full_param_path = base_name + enum_entry.name
                 if full_param_path in argument_dictionary:
                     enum_entry.__dict__["argument"] = argument_dictionary[full_param_path]
 
     def set_values_from_flat_dict(self, argument_dictionary: dict):
-        ArgumentProcessor.__fill_enum_values(argument_dictionary, self.parameter_enum)
+        ArgumentProcessor.__fill_parameter_enum_values(argument_dictionary, self.parameter_enum)
+
+    @staticmethod
+    def __post_process_enum_arg(enum_entry):
+        if enum_entry.parameter.get_type() == enum.EnumMeta:
+            enum_entry.__dict__["argument"] = enum_entry.parameter.value_map[enum_entry.value]
+        elif enum_entry.parameter.get_type() == 'parameter_enum':
+            for sub_enum_entry in enum_entry.parameter:
+                ArgumentProcessor.__post_process_enum_arg(sub_enum_entry)
+
+    def post_process_enum_args(self):
+        for enum_entry in self.parameter_enum:
+            ArgumentProcessor.__post_process_enum_arg(enum_entry)
 
 
 def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_description: str,
@@ -268,6 +284,7 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
 
     argument_dict = vars(args)
     processor.set_values_from_flat_dict(argument_dict)
+    processor.post_process_enum_args()
 
     # reset paths where wildcards were used back to the wildcards
     if args.settings_file and os.path.isfile(args.settings_file):
