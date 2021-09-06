@@ -1,5 +1,3 @@
-import pytest
-
 from ext_argparse.argproc import unflatten_dict, flatten_dict
 
 
@@ -33,6 +31,7 @@ def test_unflatten_dict():
         'cool': 'house'
     }
     assert unflattened == ground_truth
+
 
 def test_flatten_dict():
     test_dict = {

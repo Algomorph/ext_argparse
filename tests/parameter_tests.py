@@ -1,6 +1,4 @@
 import os
-import sys
-import pytest
 import pathlib
 
 from ext_argparse import Parameter, ParameterEnum, process_arguments
