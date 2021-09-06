@@ -1,1 +1,3 @@
 ruamel.yaml
+pytest
+flake8
