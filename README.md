@@ -1,5 +1,7 @@
 # ext_argparse
 
+![example workflow](https://github.com/Algomorph/ext_argparse/actions/workflows/python-app.yml/badge.svg)
+
 This is an extended version of Python's `argparse` that, in a nutshell, supports these three things:
 * using code-completion to access parameters and/or their values (a.k.a. arguments)
 * configuration file input/output, with the option to override/update files via the command line
