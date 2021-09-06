@@ -53,7 +53,7 @@ There are three different ways to install `ext_argparse`. Choose your poison.
 
 ### Via Online Repo & Pip:
 
-`pip install -e git+https://github.com/Algomorph/ext_argparse@master`
+`pip install -e git+https://github.com/Algomorph/ext_argparse@main`
 
 ### From Source via Pip:
 
