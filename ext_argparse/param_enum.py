@@ -39,7 +39,6 @@ class NestedEnumMeta(EnumMeta):
             del enum_class._member_map_[key]
             delattr(enum_class, key)
             setattr(enum_class, key, member.parameter)
-            # enum_class._member_map_ = member
             enum_class._member_map_[key] = member.parameter
         return enum_class
 
