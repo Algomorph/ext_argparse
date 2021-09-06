@@ -1,10 +1,10 @@
 import os
 import pathlib
 
-import pytest
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
 from ext_argparse.argproc import process_arguments
+from typing import Type
 
 
 class LevelTwoGroupA(ParameterEnum):
@@ -28,9 +28,9 @@ class LevelTwoGroupC(ParameterEnum):
 
 class LevelOneGroupD(ParameterEnum):
     int_param = Parameter(arg_type=int, default=5, arg_help="Number of hairs on chest")
-    group_a = LevelTwoGroupA
-    group_b = LevelTwoGroupB
-    group_c = LevelTwoGroupC
+    group_a: Type[LevelTwoGroupA] = LevelTwoGroupA
+    group_b: Type[LevelTwoGroupB] = LevelTwoGroupB
+    group_c: Type[LevelTwoGroupC] = LevelTwoGroupC
 
 
 class LevelOneGroupA(ParameterEnum):
@@ -55,9 +55,9 @@ class BaseLevelParams(ParameterEnum):
     string_param = Parameter(arg_type=str, default="Istanbul", arg_help="Point of origin")
     int_param = Parameter(arg_type=int, default=8, arg_help="Number of hairs on chest")
 
-    group_a = LevelOneGroupA
-    group_b = LevelOneGroupB
-    group_c = LevelOneGroupC
+    group_a: Type[LevelOneGroupA] = LevelOneGroupA
+    group_b: Type[LevelOneGroupB] = LevelOneGroupB
+    group_c: Type[LevelOneGroupC] = LevelOneGroupC
 
     float_param = Parameter(arg_type=float, default=0.1, arg_help="Litres of coolaid left to drink")
 
@@ -153,5 +153,3 @@ def test_nested_parameter_save_load():
         f"--settings_file={output_settings_path}"
     ])
     assert BaseLevelParams.int_param.value == 1
-
-

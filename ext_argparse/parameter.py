@@ -20,7 +20,7 @@ from typing import Union
 class Parameter(object):
     setting_file_location_wildcard = '!settings_file_location'
 
-    def __init__(self, default,
+    def __init__(self, default=None,
                  nargs='?',
                  arg_type: Union[str, type, enum.EnumMeta] = str,
                  action: str = 'store',
