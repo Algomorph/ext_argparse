@@ -11,6 +11,7 @@ class NestedEnumMeta(EnumMeta):
         EnumMeta._check_for_existing_members(cls, bases)
         # create the namespace dict
         enum_dict = _EnumDict()
+        enum_dict._cls_name = cls
         # inherit previous flags and _generate_next_value_ function
         member_type, first_enum = EnumMeta._get_mixins_(cls, bases)
         if first_enum is not None:
