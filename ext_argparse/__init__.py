@@ -20,5 +20,5 @@ __js__ = None
 __js_url__ = None
 
 from ext_argparse.argproc import process_arguments
-from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
+from ext_argparse.parameter import Parameter

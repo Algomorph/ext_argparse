@@ -74,13 +74,15 @@ and, finally, install the resulting wheel:
 ```Python
 from ext_argparse import ParameterEnum, Parameter, process_arguments
 
-class Parameters(ParameterEnum): # name your subclass here however you see fit
+
+class Parameters(ParameterEnum):  # name your subclass here however you see fit
     # Parameter class constructor also accepts arguments for 'nargs' and 'action',
     # similar to ArgumentParser.add_argument
     name = Parameter(default="Frodo Baggins", arg_type=str, arg_help="Name of our hero.")
     lembras_bread = Parameter(arg_type=int, required=True)
-    height = Parameter(default=1.12, arg_type=float,  arg_help="Height in meters.")
-    
+    height = Parameter(default=1.12, arg_type=float, arg_help="Height in meters.")
+
+
 # ...
 # Then, somewhere in the main function or body of your program:
 
@@ -120,6 +122,7 @@ We can naturally extend the example above to use Enums:
 from ext_argparse import ParameterEnum, Parameter, process_arguments
 from enum import Enum
 
+
 class Species(Enum):
     HOBBIT = 0
     ELF = 2
@@ -130,14 +133,15 @@ class Species(Enum):
     GIANT_SPIDER = 7
     CAVE_TROLL = 8
 
-class Parameters(ParameterEnum): 
-    name = Parameter(default="Frodo Baggins", arg_type=str, 
+
+class Parameters(ParameterEnum):
+    name = Parameter(default="Frodo Baggins", arg_type=str,
                      arg_help="Name of our hero.")
     lembras_bread = Parameter(arg_type=int, required=True)
-    species = Parameter(default=Species.HOBBIT, arg_type=Species, 
+    species = Parameter(default=Species.HOBBIT, arg_type=Species,
                         arg_help="Species of our hero.")
-    
-    
+
+
 # ...
 # Then, somewhere in the main function or body of your program:
 process_arguments(Parameters, program_help_description="A program for estimating chances of hero at success.")
@@ -204,29 +208,32 @@ Any level of nesting can be handled both via the configuration file or the comma
 from ext_argparse import ParameterEnum, Parameter, process_arguments
 from typing import Type
 
+
 class QuestParameters(ParameterEnum):
     name = Parameter(default="Ring Destruction", arg_type=str, arg_help="Name of the quest.")
     destination = Parameter(default="Mount Doom", arg_type=str, arg_help="Final quest destination.")
     year = Parameter(default=3018, arg_type=int, arg_help="Year of the Third Age when the quest is to begin")
-    
-class HeroParameters(ParameterEnum): 
+
+
+class HeroParameters(ParameterEnum):
     name = Parameter(default="Frodo Baggins", arg_type=str, arg_help="Name of our hero.")
     lembras_bread = Parameter(arg_type=int, required=True)
-    height = Parameter(default=1.12, arg_type=float,  arg_help="Height in meters.")
-    
+    height = Parameter(default=1.12, arg_type=float, arg_help="Height in meters.")
+
+
 class Parameters(ParameterEnum):
-    output = Parameter(default="!setting_file_location", arg_type=str, 
+    output = Parameter(default="!setting_file_location", arg_type=str,
                        arg_help="Directory where to output the detailed analysis data and report.")
     # Note the usage of typing.Type here to give code completion an additional nudge. 
     # Otherwise, it won't work on the nesting for PyCharm (haven't tested in VS Code or Sublime).
     hero: Type[HeroParameters] = HeroParameters
-    quest: Type[QuestParameters]  = QuestParameters
-    
-    
+    quest: Type[QuestParameters] = QuestParameters
+
+
 # ...
 # Then, somewhere in the main function or body of your program:
 
-process_arguments(Parameters, 
+process_arguments(Parameters,
                   program_help_description=
                   "A program for estimating chances of hero at success in a particular quest.")
 
