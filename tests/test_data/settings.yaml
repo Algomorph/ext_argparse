@@ -1,32 +1,31 @@
-analyze_only: false
-convert_telemetry: false
-data_term_amplifier: 1.0
-dataset_number: 1
-filtering_method: BILINEAR
-generate_data: false
-generation_case_file: null
+#comment
+tikhonov_term_enabled: false
 gradient_kernel_enabled: false
-implementation_language: CPP
-kernel_size: 7
-kernel_strength: 0.1
-kst: 0.1
-maximum_chunk_size: 10
-maximum_iteration_count: 1000
 maximum_warp_update_threshold: 0.007
-optimization_case_file: null
-output_path: output/lo
+maximum_iteration_count: 1000
+maximum_chunk_size: 10
 rate: 0.1
+data_term_amplifier: 1.0
+tikhonov_strength: 0.2
+kernel_size: 7
+kst: 0.1
 resampling_strategy: NEAREST_AND_AVERAGE
-save_initial_and_final_fields: false
-save_initial_fields_during_generation: false
-save_telemetry: false
-sequence_handling:
-    start_from_index: 0
-    stop_before_index: 10000000
-series_result_subfolder: null
-skip_optimization: false
+filtering_method: BILINEAR
 smoothing_coefficient: 0.5
+dataset_number: 1
+implementation_language: CPP
+sequence_handling:
 start_from_index: 0
 stop_before_index: 10000000
-tikhonov_strength: 0.2
-tikhonov_term_enabled: false
+output_path: output/lo
+generation_case_file:
+optimization_case_file:
+series_result_subfolder:
+analyze_only: false
+generate_data: false
+skip_optimization: false
+save_initial_fields_during_generation: false
+save_initial_and_final_fields: false
+save_telemetry: false
+convert_telemetry: false
+kernel_strength: 0.1
