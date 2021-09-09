@@ -12,23 +12,25 @@ This is an extended version of Python's `argparse` that, in a nutshell, supports
 Over about six years I've found myself reusing a basic version of the code in this library over and over again, because 
 I didn't find anything that supported CLI & config IO functionality which I thought was natural and comfortable. 
 Recently, I again found myself in need of such a library and discovered that in all those years, nobody published 
-anything having all or even a large subset of these features and characteristics (although some of these have other 
-features that may or may not interest you.)
+a library having all these features and characteristics (although some of these have other features that may or may not 
+interest you.)
 
 Features / characteristics of existing libraries and modules in comparison to **ext_argparse**:
 
-| Feature (down) \ library (right) | argparse | configparser | docopt  | easyargs | parse_it  | $click_  | **ext_argparse** |   
-| -------------------------------- | -------- | ------------ | ------  | -------  | --------- | -------- | ---------------- |
-| Command line input               | **yes**  |              | **yes** | **yes**  | **yes**   | **yes**  | **yes**          |
-| Environment variable input       |          |              |         |          | **yes**   |          |                  |
-| Configuration file input         |          | **yes**      |         |          | **yes**   |          | **yes**          |
-| Configuration file output        |          | **yes**      |         |          |           |          | **yes**          |
-| Argument code-complete support   |          |              |         | **yes*** |           | **yes*** | **yes**          |
-| Nested arguments                 |          | **yes**      |         |          |           |          | **yes**          |
-| Nested commands                  |          |              |         |          |           | **yes**  |                  |
-| Enum argument type               |          |              |         |          |           |          | **yes**          |
-| Avoids duplicating names in code | kind-of  |              | kind-of | **yes**  | kind-of   |          | **yes**          |
-| Avoids magic strings             | kind-of  |              |         | **yes**  |           | **yes**  | **yes**          |
+| Feature (down) \ library (right) | argparse | configparser | docopt  | easyargs | parse_it  | $click_  | hydra    | **ext_argparse** |   
+| -------------------------------- | -------- | ------------ | ------  | -------  | --------- | -------- | ------   | ---------------- |
+| Command line input               | **yes**  |              | **yes** | **yes**  | **yes**   | **yes**  | **yes**  | **yes**          |
+| Environment variable input       |          |              |         |          | **yes**   |          |          |                  |
+| Configuration file input         |          | **yes**      |         |          | **yes**   |          | **yes**  | **yes**          |
+| Configuration file output        |          | **yes**      |         |          |           |          |          | **yes**          |
+| Argument code-complete support   |          |              |         | **yes**  |           | **yes**  | **yes**  | **yes**          |
+| Argument documentation (--help)  | **yes**  |              |         |          |           | **yes**  |          | **yes**          |
+| Config-file comments             |          | **yes**      |         |          | **yes**   |          |          | **yes**          |
+| Nested arguments                 |          | **yes**      |         |          |           |          | **yes**  | **yes**          |
+| Nested commands                  |          |              |         |          |           | **yes**  |          |                  |
+| Enum argument type               |          |              |         |          |           |          | **yes**  | **yes**          |
+| Avoids duplicating names in code | kind-of  |              | kind-of | **yes**  | kind-of   |          | **yes**  | **yes**          |
+| Avoids magic strings             | kind-of  |              |         | **yes**  |           | **yes**  | **yes**  | **yes**          |
 
 I should note that positional arguments are currently not supported in `ext_argparse`, and that is a major limitation 
 (and easy fix) that, I think, should be addressed soon.
@@ -44,6 +46,13 @@ limitations as can be observed in the table.
 (*) Also of note is that `easyargs` and `$click_` in a sense support code-completion of the arguments, since they provide 
 a one-to-one mapping between function parameters and CLI parameters. In contrast, `ext_argparse` does this directly via 
 the fields of the user-provided parameter enumeration, i.e. any class extending `ParameterEnum` (see usage below).
+
+`hydra` deserves an honorable mention here. It supports code-completion, and arguably in a better way than `ext_argparse`,
+via Python's built-in [dataclasses](https://docs.python.org/3/library/dataclasses.html). The only downside to that approach
+is that documentation strings cannot yet be handled and it's not clear how to provide support for such, although that issue
+is being [discussed](https://github.com/facebookresearch/hydra/issues/633). `hydra` is the only library besides `ext_argparse`
+that naturally handles Enums and allows to override configuration file arguments from the command line. It also provides 
+several other features that `ext_argparse` currently doesn't: argument override rules, config groups, etc.
 
 ## Installation
 
