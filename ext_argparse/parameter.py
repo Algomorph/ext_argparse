@@ -36,7 +36,7 @@ class Parameter(object):
         @type nargs: int | str
         @param nargs: number of arguments. See python documentation for ArgumentParser.add_argument.
         @type arg_type: type | str
-        @param arg_type: type of value to expect during parsing
+        @param arg_type: type of value to store after parsing. Use 'bool_flag' for a boolean flag / switch.
         @type action: str | function
         @param action: action to perform with the argument value during parsing
         @type arg_help: str

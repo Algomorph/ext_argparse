@@ -144,7 +144,13 @@ class ArgumentProcessor(object):
             if enum_entry.parameter.type == 'bool_flag':
                 parser.add_argument("-" + enum_entry.parameter.shorthand,
                                     '--' + base_name + enum_entry.name,
-                                    action=enum_entry.parameter.action,
+                                    action='store_true',
+                                    default=defaults[base_name + enum_entry.name],
+                                    required=enum_entry.parameter.required,
+                                    help=enum_entry.parameter.help)
+                parser.add_argument("-n" + enum_entry.parameter.shorthand,
+                                    '--no-' + base_name + enum_entry.name,
+                                    action='store_false',
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
