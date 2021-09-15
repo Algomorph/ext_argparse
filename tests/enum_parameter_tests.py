@@ -1,8 +1,11 @@
 import os
+import os.path
 import pathlib
 import typing
 
-from ext_argparse.argproc import process_arguments
+import pytest
+
+from ext_argparse.argproc import process_arguments, save_defaults
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
 from enum import Enum
@@ -75,8 +78,12 @@ def test_changed_enum_parameters():
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SOLAR
 
 
-def test_nested_parameter_save_load():
-    test_data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
+@pytest.fixture
+def test_data_dir():
+    return os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
+
+
+def test_nested_parameter_save_load(test_data_dir):
     output_settings_path = os.path.join(test_data_dir, "enum_settings.yaml")
 
     process_arguments(HouseParameters, "Parameters of the house to repair.", [
@@ -145,3 +152,29 @@ def test_nested_parameter_save_load():
     assert HouseParameters.roof.year_changed.value == 2010
     assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
+
+
+def test_save_defaults(test_data_dir):
+    output_settings_path = os.path.join(test_data_dir, "enum_setting_defaults.yaml")
+    if os.path.exists(output_settings_path):
+        to_remove = pathlib.Path(output_settings_path)
+        to_remove.unlink()
+
+    save_defaults(HouseParameters, output_settings_path)
+
+    HouseParameters.sturdiness.argument = 10.0
+    HouseParameters.year_built.argument = 2002
+
+    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+        f"--settings_file={output_settings_path}"])
+
+    assert HouseParameters.sturdiness.value == 5.0
+    assert HouseParameters.year_built.value == 2000
+    assert HouseParameters.roof.year_changed.value == 2010
+    assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
+    assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
+
+    with open(output_settings_path, 'r') as file:
+        lines = file.readlines()
+        # make sure we're actually reading from the file, not coming up with default settings
+        assert len(lines) == 8

@@ -1,0 +1,8 @@
+sturdiness: 5.0
+year_built: 2000
+roof:
+    year_changed: 2010
+    roof_material: SLATE
+style: CRAFTSMAN_BUNGALO
+settings_file:
+save_settings: false

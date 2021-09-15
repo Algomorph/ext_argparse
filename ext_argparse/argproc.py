@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ================================================================
+import sys
 from typing import Type, List, Union
 
 from ext_argparse.parameter import Parameter
@@ -23,6 +24,7 @@ import re
 import enum
 from ruamel.yaml import YAML
 from pathlib import Path
+
 
 def generate_lc_acronym_from_snake_case(snake_case_string: str) -> str:
     return "".join([word_match[1] for word_match in re.findall(r"(:?^|_)(\w)", snake_case_string)])
@@ -107,22 +109,25 @@ class ArgumentProcessor(object):
             ArgumentProcessor.__add_shorthand_for_param_enum_item(item)
 
     @staticmethod
-    def __add_to_defaults_dict(enum_entry, defaults_dict: dict, base_name: str = ""):
+    def __add_to_defaults_dict(enum_entry, defaults_dict: dict, convert_enums_to_strings, base_name: str = ""):
         if enum_entry.parameter.type == 'parameter_enum':
             for sub_enum_item in enum_entry.parameter:
-                ArgumentProcessor.__add_to_defaults_dict(sub_enum_item, defaults_dict,
+                ArgumentProcessor.__add_to_defaults_dict(sub_enum_item, defaults_dict, convert_enums_to_strings,
                                                          base_name + enum_entry.name + ".")
         else:
-            defaults_dict[base_name + enum_entry.name] = enum_entry.parameter.default
+            if convert_enums_to_strings and isinstance(enum_entry.parameter.type, enum.EnumMeta):
+                defaults_dict[base_name + enum_entry.name] = enum_entry.parameter.default.name
+            else:
+                defaults_dict[base_name + enum_entry.name] = enum_entry.parameter.default
 
-    def generate_defaults_dict(self):
+    def generate_defaults_dict(self, convert_enums_to_strings: bool = False):
         """
         @rtype: dict
         @return: dictionary of Setting defaults
         """
         defaults_dict = {}
         for item in self.parameter_enum:
-            ArgumentProcessor.__add_to_defaults_dict(item, defaults_dict)
+            ArgumentProcessor.__add_to_defaults_dict(item, defaults_dict, convert_enums_to_strings)
         defaults_dict[ArgumentProcessor.settings_file_parameter_name] = ArgumentProcessor.settings_file.default
         defaults_dict[ArgumentProcessor.save_settings_parameter_name] = ArgumentProcessor.save_settings.default
         return defaults_dict
@@ -317,7 +322,10 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
     return args
 
 
-def output_default_arguments(program_arguments_enum: Type[ParameterEnum]):
+def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str) -> None:
     processor = ArgumentProcessor(program_arguments_enum)
-    defaults = processor.generate_defaults_dict()
-    # TODO
+    defaults = unflatten_dict(processor.generate_defaults_dict(convert_enums_to_strings=True))
+    yaml = YAML(typ='rt')
+    yaml.indent = 4
+    yaml.default_flow_style = False
+    yaml.dump(defaults, Path(destination_path))
