@@ -145,27 +145,3 @@ def test_nested_parameter_save_load():
     assert HouseParameters.roof.year_changed.value == 2010
     assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
-
-
-if __name__ == '__main__':
-    test_data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
-    output_settings_path = os.path.join(test_data_dir, "enum_settings.yaml")
-
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
-        f"--settings_file={output_settings_path}",
-        "--save_settings",
-        "--sturdiness=6.0",
-        "--year_built=2001",
-        "--roof.year_changed=2012",
-        "--style=CONTEMPORARY",
-        "--roof.roof_material=SOLAR"
-    ])
-
-    assert HouseParameters.sturdiness.value == 6.0
-    assert HouseParameters.year_built.value == 2001
-    assert HouseParameters.roof.year_changed.value == 2012
-    assert HouseParameters.style.value == HouseStyle.CONTEMPORARY
-    assert HouseParameters.roof.roof_material.value == RoofMaterial.SOLAR
-
-    # load defaults
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [])

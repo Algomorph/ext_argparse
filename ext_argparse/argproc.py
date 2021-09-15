@@ -22,7 +22,7 @@ import os.path
 import re
 import enum
 from ruamel.yaml import YAML
-
+from pathlib import Path
 
 def generate_lc_acronym_from_snake_case(snake_case_string: str) -> str:
     return "".join([word_match[1] for word_match in re.findall(r"(:?^|_)(\w)", snake_case_string)])
@@ -258,7 +258,7 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
 
     defaults[ArgumentProcessor.save_settings_parameter_name] = args.save_settings
 
-    yaml = YAML(typ='safe')
+    yaml = YAML(typ='rt')
     yaml.indent = 4
     yaml.default_flow_style = False
 
@@ -301,14 +301,23 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
 
     # save settings if prompted to do so
     if args.save_settings and args.settings_file:
-        # TODO: alter the saving such that it doesn't overwrite comments in the configuration file
-        file_stream = open(args.settings_file, "w", encoding="utf-8")
-        file_name = unflattened_argument_dict[ArgumentProcessor.save_settings_parameter_name]
+        config_path = Path(unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name])
+        settings = yaml.load(config_path)
+
         del unflattened_argument_dict[ArgumentProcessor.save_settings_parameter_name]
         del unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name]
-        yaml.dump(unflattened_argument_dict, file_stream)
-        file_stream.close()
-        unflattened_argument_dict[ArgumentProcessor.save_settings_parameter_name] = file_name
+
+        settings.update(unflattened_argument_dict)
+
+        yaml.dump(settings, config_path)
+
+        unflattened_argument_dict[ArgumentProcessor.save_settings_parameter_name] = config_path
         unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name] = True
 
     return args
+
+
+def output_default_arguments(program_arguments_enum: Type[ParameterEnum]):
+    processor = ArgumentProcessor(program_arguments_enum)
+    defaults = processor.generate_defaults_dict()
+    # TODO
