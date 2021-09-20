@@ -53,7 +53,7 @@ class HouseParameters(ParameterEnum):
 
 
 def test_default_parameters():
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [])
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[])
 
     assert HouseParameters.sturdiness.value == 5.0
     assert HouseParameters.year_built.value == 2000
@@ -63,7 +63,7 @@ def test_default_parameters():
 
 
 def test_changed_enum_parameters():
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         "--sturdiness=6.0",
         "--year_built=2001",
         "--roof.year_changed=2012",
@@ -86,7 +86,7 @@ def test_data_dir():
 def test_nested_parameter_save_load(test_data_dir):
     output_settings_path = os.path.join(test_data_dir, "enum_settings.yaml")
 
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         f"--settings_file={output_settings_path}"])
 
     assert HouseParameters.sturdiness.value == 5.0
@@ -95,7 +95,7 @@ def test_nested_parameter_save_load(test_data_dir):
     assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
 
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         f"--settings_file={output_settings_path}",
         "--save_settings",
         "--sturdiness=6.0",
@@ -112,7 +112,7 @@ def test_nested_parameter_save_load(test_data_dir):
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SOLAR
 
     # load defaults
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         "--sturdiness=5.0",
         "--year_built=2000",
         "--roof.year_changed=2010",
@@ -126,7 +126,7 @@ def test_nested_parameter_save_load(test_data_dir):
     assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
 
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         f"--settings_file={output_settings_path}"])
 
     # verify loaded settings were altered from default
@@ -137,7 +137,7 @@ def test_nested_parameter_save_load(test_data_dir):
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SOLAR
 
     # save defaults now
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         f"--settings_file={output_settings_path}",
         "--save_settings",
         "--sturdiness=5.0",
@@ -165,7 +165,7 @@ def test_save_defaults(test_data_dir):
     HouseParameters.sturdiness.argument = 10.0
     HouseParameters.year_built.argument = 2002
 
-    process_arguments(HouseParameters, "Parameters of the house to repair.", [
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
         f"--settings_file={output_settings_path}"])
 
     assert HouseParameters.sturdiness.value == 5.0

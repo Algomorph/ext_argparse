@@ -65,7 +65,7 @@ class BaseLevelParams(ParameterEnum):
 
 
 def test_default_nested_parameters():
-    process_arguments(BaseLevelParams, "Test parameter parser", [])
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[])
     assert BaseLevelParams.float_param.value == 0.1
     assert BaseLevelParams.group_a.float_param.value == 0.1
     assert BaseLevelParams.group_c.int_param.value == 9
@@ -75,7 +75,7 @@ def test_default_nested_parameters():
 
 
 def test_full_nested_parameters():
-    process_arguments(BaseLevelParams, "Test parameter parser", [
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[
         "--float_param=0.2",
         "--int_param=1",
         "--group_a.float_param=0.4",
@@ -94,7 +94,7 @@ def test_full_nested_parameters():
 
 
 def test_shorthand_nested_parameters():
-    process_arguments(BaseLevelParams, "Test parameter parser", [
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[
         "-fp=0.2",
         "-ip=1",
         "-ga.fp=0.4",
@@ -115,7 +115,7 @@ def test_shorthand_nested_parameters():
 def test_nested_parameter_save_load():
     test_data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
     output_settings_path = os.path.join(test_data_dir, "nested_settings.yaml")
-    process_arguments(BaseLevelParams, "Test parameter parser", [
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[
         f"--settings_file={output_settings_path}",
         "--save_settings",
         "--float_param=0.2",
@@ -137,10 +137,10 @@ def test_nested_parameter_save_load():
     assert BaseLevelParams.group_d.group_c.path_param.value == test_data_dir
 
     # load defaults
-    process_arguments(BaseLevelParams, "Test parameter parser", [])
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[])
     assert BaseLevelParams.group_d.group_c.path_param.value == "."
 
-    process_arguments(BaseLevelParams, "Test parameter parser", [
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[
         f"--settings_file={output_settings_path}",
         "--int_param=2"
     ])
@@ -151,7 +151,7 @@ def test_nested_parameter_save_load():
     assert BaseLevelParams.group_d.group_c.path_param.value == test_data_dir
 
     # test that settings file was not overwritten
-    process_arguments(BaseLevelParams, "Test parameter parser", [
+    process_arguments(BaseLevelParams, "Test parameter parser", argv=[
         f"--settings_file={output_settings_path}"
     ])
     assert BaseLevelParams.int_param.value == 1

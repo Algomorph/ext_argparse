@@ -76,7 +76,7 @@ class Parameters(ParameterEnum):
 def test_default_parameters():
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.", [])
+                                  "loads it from a folder from further re-use.", argv=[])
 
     assert not Parameters.tikhonov_term_enabled.value
     assert not Parameters.analyze_only.value
@@ -89,14 +89,13 @@ def test_default_parameters():
 def test_full_length_parameters():
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.",
-                      ["--tikhonov_term_enabled",
-                       "--analyze_only",
-                       "--output_path=output/lo",
-                       "--filtering_method=BILINEAR",
-                       "--maximum_warp_update_threshold=0.005",
-                       "--maximum_chunk_size=12",
-                       ])
+                                  "loads it from a folder from further re-use.", argv=["--tikhonov_term_enabled",
+                                                                                       "--analyze_only",
+                                                                                       "--output_path=output/lo",
+                                                                                       "--filtering_method=BILINEAR",
+                                                                                       "--maximum_warp_update_threshold=0.005",
+                                                                                       "--maximum_chunk_size=12",
+                                                                                       ])
 
     assert Parameters.tikhonov_term_enabled.value
     assert Parameters.analyze_only.value
@@ -109,14 +108,13 @@ def test_full_length_parameters():
 def test_shorthand_parameters():
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.",
-                      ["-tte",
-                       "-ao",
-                       "-op=output/lo",
-                       "-fm=BILINEAR",
-                       "-mwut=0.006",
-                       "-mcs=12",
-                       ])
+                                  "loads it from a folder from further re-use.", argv=["-tte",
+                                                                                       "-ao",
+                                                                                       "-op=output/lo",
+                                                                                       "-fm=BILINEAR",
+                                                                                       "-mwut=0.006",
+                                                                                       "-mcs=12",
+                                                                                       ])
 
     assert Parameters.tikhonov_term_enabled.value
     assert Parameters.analyze_only.value
@@ -133,13 +131,13 @@ def test_save_parameters():
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
                                   "loads it from a folder from further re-use.",
-                      [f"--settings_file={output_settings_path}",
-                       "--save_settings",
-                       "-op=output/ho",
-                       "-fm=NONE",
-                       "-mwut=0.01",
-                       "-mcs=8",
-                       ])
+                      argv=[f"--settings_file={output_settings_path}",
+                            "--save_settings",
+                            "-op=output/ho",
+                            "-fm=NONE",
+                            "-mwut=0.01",
+                            "-mcs=8",
+                            ])
 
     assert Parameters.output_path.value == "output/ho"
     assert Parameters.filtering_method.value == "NONE"
@@ -150,17 +148,17 @@ def test_save_parameters():
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
                                   "loads it from a folder from further re-use.",
-                      [f"--settings_file={output_settings_path}",
-                       "--save_settings",
-                       "-op=output/lo",
-                       "-fm=BILINEAR",
-                       "-mwut=0.007",
-                       "-mcs=10",
-                       ])
+                      argv=[f"--settings_file={output_settings_path}",
+                            "--save_settings",
+                            "-op=output/lo",
+                            "-fm=BILINEAR",
+                            "-mwut=0.007",
+                            "-mcs=10",
+                            ])
     # load defaults again
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.", [])
+                                  "loads it from a folder from further re-use.", argv=[])
 
     assert Parameters.maximum_warp_update_threshold.value == 0.01
 
@@ -168,7 +166,7 @@ def test_save_parameters():
     process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
                                   "& random pixel rows from these. Alternatively, generates the said data or "
                                   "loads it from a folder from further re-use.",
-                      [f"--settings_file={output_settings_path}"])
+                      argv=[f"--settings_file={output_settings_path}"])
 
     assert Parameters.output_path.value == "output/lo"
     assert Parameters.filtering_method.value == "BILINEAR"

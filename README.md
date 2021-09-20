@@ -243,8 +243,7 @@ class Parameters(ParameterEnum):
 # Then, somewhere in the main function or body of your program:
 
 process_arguments(Parameters,
-                  program_help_description=
-                  "A program for estimating chances of hero at success in a particular quest.")
+                  program_help_description="A program for estimating chances of hero at success in a particular quest.")
 
 # And access arguments like so (note the usage of .hero and .quest):
 print(f"The name of our dear hero is: {Parameters.hero.name.value}")

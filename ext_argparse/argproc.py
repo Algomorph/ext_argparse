@@ -32,7 +32,7 @@ def generate_lc_acronym_from_snake_case(snake_case_string: str) -> str:
     return "".join([word_match[1] for word_match in re.findall(r"(:?^|_)(\w)", snake_case_string)])
 
 
-def unflatten_dict(dictionary):
+def unflatten_dict(dictionary: dict):
     dict_out = {}
     path_word_pattern = re.compile(r'(?:^|[.])(\w+)')
     for key, value in dictionary.items():
@@ -47,7 +47,7 @@ def unflatten_dict(dictionary):
     return dict_out
 
 
-def flatten_dict(dictionary):
+def flatten_dict(dictionary: Union[ruamel.yaml.comments.CommentedMap, dict]):
     dict_out = {}
     for key, value in dictionary.items():
         if type(value) == dict or type(value) == ruamel.yaml.comments.CommentedMap:
@@ -57,6 +57,15 @@ def flatten_dict(dictionary):
         else:
             dict_out[key] = value
     return dict_out
+
+
+def careful_update(target_map: ruamel.yaml.comments.CommentedMap, value_updates: dict):
+    for key, value in target_map.items():
+        if key in value_updates:
+            if type(value) == ruamel.yaml.comments.CommentedMap:
+                careful_update(value, value_updates[key])
+            else:
+                target_map[key] = value_updates[key]
 
 
 class ArgumentProcessor(object):
@@ -252,29 +261,42 @@ class ArgumentProcessor(object):
             ArgumentProcessor.__post_process_enum_arg(enum_entry)
 
 
+def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str) -> None:
+    processor = ArgumentProcessor(program_arguments_enum)
+    defaults = unflatten_dict(processor.generate_defaults_dict(convert_enums_to_strings=True))
+    yaml = YAML(typ='rt')
+    yaml.indent = 4
+    yaml.default_flow_style = False
+    yaml.dump(defaults, Path(destination_path))
+
+
 def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_description: str,
-                      argv: List[str] = None) -> argparse.Namespace:
+                      default_settings_file=None, generate_default_settings_if_missing=False, argv: List[str] = None) \
+        -> argparse.Namespace:
     processor = ArgumentProcessor(program_arguments_enum)
     defaults = processor.generate_defaults_dict()
 
-    conf_parser = \
+    console_only_parser = \
         processor.generate_parser(defaults, console_only=True, description=program_help_description)
-
-    # ============== STORAGE/RETRIEVAL OF CONSOLE SETTINGS ===========================================#
-    args, remaining_argv = conf_parser.parse_known_args(argv)
-
-    defaults[ArgumentProcessor.save_settings_parameter_name] = args.save_settings
 
     yaml = YAML(typ='rt')
     yaml.indent = 4
     yaml.default_flow_style = False
 
+    # ============== STORAGE/RETRIEVAL OF CONSOLE SETTINGS ===========================================#
+    args, remaining_argv = console_only_parser.parse_known_args(argv)
+
+    if not args.settings_file and default_settings_file is not None:
+        args.settings_file = default_settings_file
+        if generate_default_settings_if_missing and not Path(default_settings_file).exists():
+            save_defaults(program_arguments_enum, default_settings_file)
+
+    defaults[ArgumentProcessor.save_settings_parameter_name] = args.save_settings
+
     if args.settings_file:
         defaults[ArgumentProcessor.settings_file_parameter_name] = args.settings_file
         if os.path.isfile(args.settings_file):
-            file_stream = open(args.settings_file, "r", encoding="utf-8")
-            config_defaults = yaml.load(file_stream)
-            file_stream.close()
+            config_defaults = yaml.load(Path(args.settings_file))
             if config_defaults:
                 config_defaults = flatten_dict(config_defaults)
                 for key, value in config_defaults.items():
@@ -283,7 +305,7 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
             if not args.save_settings:
                 raise ValueError("Settings file not found at: {0:s}".format(args.settings_file))
 
-    parser = processor.generate_parser(defaults, parents=[conf_parser])
+    parser = processor.generate_parser(defaults, parents=[console_only_parser])
     args = parser.parse_args(remaining_argv)
 
     # process "special" setting values
@@ -314,7 +336,7 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
         del unflattened_argument_dict[ArgumentProcessor.save_settings_parameter_name]
         del unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name]
 
-        settings.update(unflattened_argument_dict)
+        careful_update(settings, unflattened_argument_dict)
 
         yaml.dump(settings, config_path)
 
@@ -322,12 +344,3 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
         unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name] = True
 
     return args
-
-
-def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str) -> None:
-    processor = ArgumentProcessor(program_arguments_enum)
-    defaults = unflatten_dict(processor.generate_defaults_dict(convert_enums_to_strings=True))
-    yaml = YAML(typ='rt')
-    yaml.indent = 4
-    yaml.default_flow_style = False
-    yaml.dump(defaults, Path(destination_path))
