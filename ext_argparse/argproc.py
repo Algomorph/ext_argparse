@@ -16,6 +16,8 @@
 import sys
 from typing import Type, List, Union
 
+import ruamel.yaml.comments
+
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
 import argparse
@@ -48,7 +50,7 @@ def unflatten_dict(dictionary):
 def flatten_dict(dictionary):
     dict_out = {}
     for key, value in dictionary.items():
-        if type(value) == dict:
+        if type(value) == dict or type(value) == ruamel.yaml.comments.CommentedMap:
             flattened_sub_dict = flatten_dict(value)
             for sub_key, sub_value in flattened_sub_dict.items():
                 dict_out[key + "." + sub_key] = sub_value

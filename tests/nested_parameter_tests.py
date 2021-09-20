@@ -146,6 +146,8 @@ def test_nested_parameter_save_load():
     ])
 
     assert BaseLevelParams.int_param.value == 2
+    print()
+    print(BaseLevelParams.group_d.group_c.path_param.value)
     assert BaseLevelParams.group_d.group_c.path_param.value == test_data_dir
 
     # test that settings file was not overwritten
