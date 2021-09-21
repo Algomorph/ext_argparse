@@ -1,6 +1,8 @@
 # ext_argparse
 
-![example workflow](https://github.com/Algomorph/ext_argparse/actions/workflows/python-app.yml/badge.svg)
+![python app workflow](https://github.com/Algomorph/ext_argparse/actions/workflows/python-app.yml/badge.svg)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 
 This is an extended version of Python's `argparse` that, in a nutshell, supports these three things:
 * using code-completion to access parameters and/or their values (a.k.a. arguments)
