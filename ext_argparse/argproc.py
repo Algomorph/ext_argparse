@@ -264,6 +264,8 @@ class ArgumentProcessor(object):
 def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str) -> None:
     processor = ArgumentProcessor(program_arguments_enum)
     defaults = unflatten_dict(processor.generate_defaults_dict(convert_enums_to_strings=True))
+    del defaults[ArgumentProcessor.save_settings_parameter_name]
+    del defaults[ArgumentProcessor.settings_file_parameter_name]
     yaml = YAML(typ='rt')
     yaml.indent = 4
     yaml.default_flow_style = False

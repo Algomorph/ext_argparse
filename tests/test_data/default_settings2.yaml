@@ -1,0 +1,28 @@
+tikhonov_term_enabled: false
+gradient_kernel_enabled: false
+maximum_warp_update_threshold: 0.02
+maximum_iteration_count: 1000
+maximum_chunk_size: 9
+rate: 0.1
+data_term_amplifier: 1.0
+tikhonov_strength: 0.2
+kernel_size: 7
+kernel_strength: 0.1
+resampling_strategy: NEAREST_AND_AVERAGE
+filtering_method: BILINEAR
+smoothing_coefficient: 0.5
+dataset_number: 1
+implementation_language: CPP
+output_path: output/ho
+generation_case_file:
+optimization_case_file:
+series_result_subfolder:
+analyze_only: false
+generate_data: false
+skip_optimization: false
+save_initial_fields_during_generation: false
+save_initial_and_final_fields: false
+save_telemetry: false
+convert_telemetry: false
+stop_before_index: 10000000
+start_from_index: 0

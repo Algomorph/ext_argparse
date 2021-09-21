@@ -1,14 +1,12 @@
 import os
 import pathlib
 
+import pytest
+
 from ext_argparse.argproc import process_arguments
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
 
-
-class SequenceHandlingParameters(ParameterEnum):
-    stop_before_index = Parameter(arg_type=int, default=10000000)
-    start_from_index = Parameter(arg_type=int, default=0)
 
 
 class Parameters(ParameterEnum):
@@ -37,8 +35,6 @@ class Parameters(ParameterEnum):
     # other experiment settings
     dataset_number = Parameter(arg_type=int, default=1)
     implementation_language = Parameter(arg_type=str, default="CPP")
-
-    sequence_handling = SequenceHandlingParameters
 
     output_path = Parameter(arg_type=str, default="output/ho")
     generation_case_file = \
@@ -72,11 +68,19 @@ class Parameters(ParameterEnum):
     convert_telemetry = Parameter(action="store_true", default=False, arg_type='bool_flag',
                                   arg_help="Convert telemetry to videos")
 
+    stop_before_index = Parameter(arg_type=int, default=10000000)
+    start_from_index = Parameter(arg_type=int, default=0)
 
-def test_default_parameters():
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.", argv=[])
+
+@pytest.fixture
+def description_string():
+    return "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs " \
+           "& random pixel rows from these. Alternatively, generates the said data or " \
+           "loads it from a folder from further re-use."
+
+
+def test_default_parameters(description_string):
+    process_arguments(Parameters, description_string, argv=[])
 
     assert not Parameters.tikhonov_term_enabled.value
     assert not Parameters.analyze_only.value
@@ -86,16 +90,14 @@ def test_default_parameters():
     assert Parameters.maximum_chunk_size.value == 8
 
 
-def test_full_length_parameters():
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.", argv=["--tikhonov_term_enabled",
-                                                                                       "--analyze_only",
-                                                                                       "--output_path=output/lo",
-                                                                                       "--filtering_method=BILINEAR",
-                                                                                       "--maximum_warp_update_threshold=0.005",
-                                                                                       "--maximum_chunk_size=12",
-                                                                                       ])
+def test_full_length_parameters(description_string):
+    process_arguments(Parameters, description_string, argv=["--tikhonov_term_enabled",
+                                                            "--analyze_only",
+                                                            "--output_path=output/lo",
+                                                            "--filtering_method=BILINEAR",
+                                                            "--maximum_warp_update_threshold=0.005",
+                                                            "--maximum_chunk_size=12",
+                                                            ])
 
     assert Parameters.tikhonov_term_enabled.value
     assert Parameters.analyze_only.value
@@ -105,16 +107,14 @@ def test_full_length_parameters():
     assert Parameters.maximum_chunk_size.value == 12
 
 
-def test_shorthand_parameters():
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.", argv=["-tte",
-                                                                                       "-ao",
-                                                                                       "-op=output/lo",
-                                                                                       "-fm=BILINEAR",
-                                                                                       "-mwut=0.006",
-                                                                                       "-mcs=12",
-                                                                                       ])
+def test_shorthand_parameters(description_string):
+    process_arguments(Parameters, description_string, argv=["-tte",
+                                                            "-ao",
+                                                            "-op=output/lo",
+                                                            "-fm=BILINEAR",
+                                                            "-mwut=0.006",
+                                                            "-mcs=12",
+                                                            ])
 
     assert Parameters.tikhonov_term_enabled.value
     assert Parameters.analyze_only.value
@@ -124,13 +124,15 @@ def test_shorthand_parameters():
     assert Parameters.maximum_chunk_size.value == 12
 
 
-def test_save_parameters():
-    test_data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
+@pytest.fixture
+def test_data_dir():
+    return os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
+
+
+def test_save_parameters(test_data_dir, description_string):
     output_settings_path = os.path.join(test_data_dir, "settings.yaml")
     # save default settings first
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.",
+    process_arguments(Parameters, description_string,
                       argv=[f"--settings_file={output_settings_path}",
                             "--save_settings",
                             "-op=output/ho",
@@ -145,9 +147,7 @@ def test_save_parameters():
     assert Parameters.maximum_chunk_size.value == 8
 
     # save modified settings
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.",
+    process_arguments(Parameters, description_string,
                       argv=[f"--settings_file={output_settings_path}",
                             "--save_settings",
                             "-op=output/lo",
@@ -156,19 +156,67 @@ def test_save_parameters():
                             "-mcs=10",
                             ])
     # load defaults again
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.", argv=[])
+    process_arguments(Parameters, description_string, argv=[])
 
     assert Parameters.maximum_warp_update_threshold.value == 0.01
 
     # load modified settings
-    process_arguments(Parameters, "Runs 2D hierarchical optimizer on TSDF inputs generated from frame-pairs "
-                                  "& random pixel rows from these. Alternatively, generates the said data or "
-                                  "loads it from a folder from further re-use.",
+    process_arguments(Parameters, description_string,
                       argv=[f"--settings_file={output_settings_path}"])
 
     assert Parameters.output_path.value == "output/lo"
     assert Parameters.filtering_method.value == "BILINEAR"
     assert Parameters.maximum_warp_update_threshold.value == 0.007
     assert Parameters.maximum_chunk_size.value == 10
+
+
+def test_default_settings_file(test_data_dir, description_string):
+    default_settings_path = os.path.join(test_data_dir, "default_settings.yaml")
+    process_arguments(Parameters, description_string,
+                      argv=["-fm=BILINEAR",
+                            "-mwut=0.03",
+                            "-mcs=5",
+                            ], default_settings_file=default_settings_path)
+    default_settings2_path = os.path.join(test_data_dir, "default_settings2.yaml")
+    if os.path.exists(default_settings2_path):
+        os.unlink(default_settings2_path)
+
+    assert Parameters.filtering_method.value == "BILINEAR"
+    assert Parameters.maximum_warp_update_threshold.value == 0.03
+    assert Parameters.maximum_chunk_size.value == 5
+    assert Parameters.implementation_language.value == "PYTHON"
+    assert Parameters.rate.value == 0.08
+    assert Parameters.stop_before_index.value == 32
+
+    process_arguments(Parameters, description_string,
+                      argv=["--save_settings",
+                            "-fm=BILINEAR",
+                            "-mwut=0.02",
+                            "-mcs=9",
+                            ],
+                      default_settings_file=default_settings2_path,
+                      generate_default_settings_if_missing=True)
+
+    assert Parameters.filtering_method.value == "BILINEAR"
+    assert Parameters.maximum_warp_update_threshold.value == 0.02
+    assert Parameters.maximum_chunk_size.value == 9
+    assert Parameters.implementation_language.value == "CPP"
+    assert Parameters.rate.value == 0.1
+    assert Parameters.stop_before_index.value == 10000000
+
+    # load defaults, just in case
+    process_arguments(Parameters, description_string, argv=[])
+
+    assert Parameters.filtering_method.value == "NONE"
+    assert Parameters.maximum_warp_update_threshold.value == 0.01
+    assert Parameters.maximum_chunk_size.value == 8
+
+    process_arguments(Parameters, description_string,
+                      argv=[f"--settings_file={default_settings2_path}"])
+
+    assert Parameters.filtering_method.value == "BILINEAR"
+    assert Parameters.maximum_warp_update_threshold.value == 0.02
+    assert Parameters.maximum_chunk_size.value == 9
+
+
+

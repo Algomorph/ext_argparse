@@ -177,4 +177,4 @@ def test_save_defaults(test_data_dir):
     with open(output_settings_path, 'r') as file:
         lines = file.readlines()
         # make sure we're actually reading from the file, not coming up with default settings
-        assert len(lines) == 8
+        assert len(lines) == 6

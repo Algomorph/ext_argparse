@@ -1,0 +1,40 @@
+# comment
+analyze_only: false
+convert_telemetry: false
+data_term_amplifier: 1.0
+dataset_number: 1
+filtering_method: BILINEAR
+generate_data: true
+generation_case_file: "hedgehogs/are/funny"
+gradient_kernel_enabled: false
+implementation_language: PYTHON
+kernel_size: 5
+kernel_strength: 0.1
+kst: 0.1
+maximum_chunk_size: 8
+maximum_iteration_count: 4000
+maximum_warp_update_threshold: 0.008
+no_analyze_only: false
+no_convert_telemetry: false
+no_generate_data: false
+no_gradient_kernel_enabled: false
+no_save_initial_and_final_fields: false
+no_save_initial_fields_during_generation: false
+no_save_telemetry: false
+no_skip_optimization: false
+no_tikhonov_term_enabled: false
+optimization_case_file:
+output_path: output/mi
+rate: 0.08
+resampling_strategy: NEAREST_AND_AVERAGE
+save_initial_and_final_fields: false
+save_initial_fields_during_generation: false
+save_telemetry: false
+sequence_handling:
+series_result_subfolder:
+skip_optimization: false
+smoothing_coefficient: 0.4
+start_from_index: 0
+stop_before_index: 32
+tikhonov_strength: 0.15
+tikhonov_term_enabled: false
