@@ -3,10 +3,10 @@ import pathlib
 
 import pytest
 
-from ext_argparse.argproc import process_arguments
+from ext_argparse.argproc import process_arguments, dump
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
-
+from io import StringIO
 
 
 class Parameters(ParameterEnum):
@@ -219,4 +219,49 @@ def test_default_settings_file(test_data_dir, description_string):
     assert Parameters.maximum_chunk_size.value == 9
 
 
+def test_dump_parameters(description_string):
+    process_arguments(Parameters, description_string, argv=["--tikhonov_term_enabled",
+                                                            "--analyze_only",
+                                                            "--output_path=output/lo",
+                                                            "--filtering_method=BILINEAR",
+                                                            "--maximum_warp_update_threshold=0.005",
+                                                            "--maximum_chunk_size=12",
+                                                            ])
+    string_stream = StringIO()
+    dump(Parameters, string_stream)
 
+    ground_truth_string = \
+        """
+        tikhonov_term_enabled: true
+        gradient_kernel_enabled: false
+        maximum_warp_update_threshold: 0.005
+        maximum_iteration_count: 1000
+        maximum_chunk_size: 12
+        rate: 0.1
+        data_term_amplifier: 1.0
+        tikhonov_strength: 0.2
+        kernel_size: 7
+        kernel_strength: 0.1
+        resampling_strategy: NEAREST_AND_AVERAGE
+        filtering_method: BILINEAR
+        smoothing_coefficient: 0.5
+        dataset_number: 1
+        implementation_language: CPP
+        output_path: output/lo
+        generation_case_file:
+        optimization_case_file:
+        series_result_subfolder:
+        analyze_only: true
+        generate_data: false
+        skip_optimization: false
+        save_initial_fields_during_generation: false
+        save_initial_and_final_fields: false
+        save_telemetry: false
+        convert_telemetry: false
+        stop_before_index: 10000000
+        start_from_index: 0
+        """
+    ground_truth_string = '\n'.join(line.strip() for line in ground_truth_string.split())
+    output_string = '\n'.join(line.strip() for line in string_stream.getvalue().split())
+
+    assert output_string == ground_truth_string

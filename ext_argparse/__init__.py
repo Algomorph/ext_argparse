@@ -19,6 +19,6 @@ __license__ = "Apache License Version 2.0"
 __js__ = None
 __js_url__ = None
 
-from ext_argparse.argproc import process_arguments
+from ext_argparse.argproc import process_arguments, save_defaults, dump
 from ext_argparse.param_enum import ParameterEnum
 from ext_argparse.parameter import Parameter

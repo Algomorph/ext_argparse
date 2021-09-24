@@ -2,10 +2,11 @@ import os
 import os.path
 import pathlib
 import typing
+from io import StringIO
 
 import pytest
 
-from ext_argparse.argproc import process_arguments, save_defaults
+from ext_argparse.argproc import process_arguments, save_defaults, dump
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
 from enum import Enum
@@ -178,3 +179,29 @@ def test_save_defaults(test_data_dir):
         lines = file.readlines()
         # make sure we're actually reading from the file, not coming up with default settings
         assert len(lines) == 6
+
+
+def test_dump_parameters():
+    process_arguments(HouseParameters, "Parameters of the house to repair.", argv=[
+        "--sturdiness=6.0",
+        "--year_built=2001",
+        "--roof.year_changed=2012",
+        "--style=CONTEMPORARY",
+        "--roof.roof_material=SOLAR"
+    ])
+
+    string_stream = StringIO()
+    dump(HouseParameters, string_stream)
+
+    ground_truth_lines = [
+        "sturdiness: 6.0",
+        "year_built: 2001",
+        "roof:",
+        "    year_changed: 2012",
+        "    roof_material: SOLAR",
+        "style: CONTEMPORARY",
+        ""]
+    ground_truth_string = '\n'.join(ground_truth_lines)
+    output_string = string_stream.getvalue()
+
+    assert output_string == ground_truth_string

@@ -30,7 +30,6 @@ resampling_strategy: NEAREST_AND_AVERAGE
 save_initial_and_final_fields: false
 save_initial_fields_during_generation: false
 save_telemetry: false
-sequence_handling:
 series_result_subfolder:
 skip_optimization: false
 smoothing_coefficient: 0.4

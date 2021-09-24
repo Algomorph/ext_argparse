@@ -13,8 +13,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ================================================================
+import io
 import sys
 from typing import Type, List, Union
+from io import StringIO
 
 import ruamel.yaml.comments
 
@@ -131,17 +133,31 @@ class ArgumentProcessor(object):
             else:
                 defaults_dict[base_name + enum_entry.name] = enum_entry.parameter.default
 
-    def generate_defaults_dict(self, convert_enums_to_strings: bool = False):
-        """
-        @rtype: dict
-        @return: dictionary of Setting defaults
-        """
+    def generate_defaults_dict(self, convert_enums_to_strings: bool = False) -> dict:
         defaults_dict = {}
         for item in self.parameter_enum:
             ArgumentProcessor.__add_to_defaults_dict(item, defaults_dict, convert_enums_to_strings)
         defaults_dict[ArgumentProcessor.settings_file_parameter_name] = ArgumentProcessor.settings_file.default
         defaults_dict[ArgumentProcessor.save_settings_parameter_name] = ArgumentProcessor.save_settings.default
         return defaults_dict
+
+    @staticmethod
+    def __add_to_value_dict(enum_entry, value_dict: dict, convert_enums_to_strings, base_name: str = ""):
+        if enum_entry.parameter.type == 'parameter_enum':
+            for sub_enum_item in enum_entry.parameter:
+                ArgumentProcessor.__add_to_value_dict(sub_enum_item, value_dict, convert_enums_to_strings,
+                                                      base_name + enum_entry.name + ".")
+        else:
+            if convert_enums_to_strings and isinstance(enum_entry.parameter.type, enum.EnumMeta):
+                value_dict[base_name + enum_entry.name] = enum_entry.value.name
+            else:
+                value_dict[base_name + enum_entry.name] = enum_entry.value
+
+    def generate_value_dict(self, convert_enums_to_strings: bool = False) -> dict:
+        value_dict = {}
+        for item in self.parameter_enum:
+            ArgumentProcessor.__add_to_value_dict(item, value_dict, convert_enums_to_strings)
+        return value_dict
 
     @staticmethod
     def __add_parameter_enum_entry_to_parser(enum_entry: Union[Parameter, ParameterEnum],
@@ -158,29 +174,29 @@ class ArgumentProcessor(object):
                 (not enum_entry.parameter.console_only and not console_only):
             # TODO: transition to match statement here when the Python requirements is at or above 3.10
             if enum_entry.parameter.type == 'bool_flag':
-                parser.add_argument("-" + enum_entry.parameter.shorthand,
-                                    '--' + base_name + enum_entry.name,
+                parser.add_argument('--' + base_name + enum_entry.name,
+                                    "-" + enum_entry.parameter.shorthand,
                                     action='store_true',
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
-                parser.add_argument("-n" + enum_entry.parameter.shorthand,
-                                    '--no-' + base_name + enum_entry.name,
+                parser.add_argument('--no-' + base_name + enum_entry.name,
+                                    "-n" + enum_entry.parameter.shorthand,
                                     action='store_false',
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
             elif isinstance(enum_entry.parameter.type, enum.EnumMeta):
-                parser.add_argument("-" + enum_entry.parameter.shorthand,
-                                    '--' + base_name + enum_entry.name,
+                parser.add_argument('--' + base_name + enum_entry.name,
+                                    "-" + enum_entry.parameter.shorthand,
                                     action=enum_entry.parameter.action,
                                     type=str, nargs=enum_entry.parameter.nargs,
                                     required=enum_entry.parameter.required,
                                     default=defaults[base_name + enum_entry.name],
                                     help=enum_entry.parameter.help)
             else:
-                parser.add_argument("-" + enum_entry.parameter.shorthand,
-                                    '--' + base_name + enum_entry.name,
+                parser.add_argument('--' + base_name + enum_entry.name,
+                                    "-" + enum_entry.parameter.shorthand,
                                     action=enum_entry.parameter.action,
                                     type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
                                     required=enum_entry.parameter.required,
@@ -270,6 +286,16 @@ def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path:
     yaml.indent = 4
     yaml.default_flow_style = False
     yaml.dump(defaults, Path(destination_path))
+
+
+def dump(program_arguments_enum: Type[ParameterEnum],
+         stream: Union[io.StringIO, io.FileIO, io.TextIOWrapper] = sys.stdout):
+    processor = ArgumentProcessor(program_arguments_enum)
+    values = unflatten_dict(processor.generate_value_dict(convert_enums_to_strings=True))
+    yaml = YAML(typ='rt')
+    yaml.indent = 4
+    yaml.default_flow_style = False
+    yaml.dump(values, stream)
 
 
 def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_description: str,
