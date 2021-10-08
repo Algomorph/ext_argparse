@@ -122,9 +122,9 @@ Here, the resulting command might look like:
 
 `python3 -m estimate_hero_success.py -n="Samwise Gamgee" -lembr=25 -h=1.21`
 
-## Enum Type Support
+## Enum Type Support and Positional Arguments
 
-We can naturally extend the example above to use Enums:
+We can naturally extend the example above to use Enums and to make the hero's name a positional parameter:
 
 ```Python
 from ext_argparse import ParameterEnum, Parameter, process_arguments
@@ -144,7 +144,7 @@ class Species(Enum):
 
 class Parameters(ParameterEnum):
     name = Parameter(default="Frodo Baggins", arg_type=str,
-                     arg_help="Name of our hero.")
+                     arg_help="Name of our hero.", positional=True)
     lembas_bread = Parameter(arg_type=int, required=True)
     species = Parameter(default=Species.HOBBIT, arg_type=Species,
                         arg_help="Species of our hero.")
@@ -162,7 +162,7 @@ if Parameters.species.value is Species.CAVE_TROLL:
 ```
 
 Our command line might then look like this:
-`python3 -m estimate_hero_success.py --name="Gandalf the Grey" --lembas_bread=5 --height=1.82 --species=WIZARD`
+`python3 -m estimate_hero_success.py "Gandalf the Grey" --lembas_bread=5 --height=1.82 --species=WIZARD`
 
 Note that just the string `WIZARD` is used at the command line, not something like `Species.WIZARD` or lowercase `wizard`.
 
@@ -187,7 +187,13 @@ If you also wanted to save the updated settings that you've overridden from the 
 `python3 -m estimate_hero_success.py --lembas_bread=25  --settings_file=lord_of_the_rings/the_two_towers/SamwiseConfig.yaml --save_settings`
 
 **Note**: it is up to you to ensure there are no shorthand conflicts with `settings_file` and `save_settings` (`sf` and 
-`ss` shorthands, respectively) via innovative naming or custom `shorthand` arguments.
+`ss` shorthands, respectively) via innovative naming or custom `shorthand` arguments to the constructors of your 
+`Parameter` objects.
+
+**Note**: any subset of arguments can be provided from either or both sources, with any remaining parameters retaining
+default values.
+
+### Wildcard Parameter Values
 
 There is also a special value you can use in string arguments accepting _paths_ to resources, `!setting_file_location`, 
 that will be substituted with the directory of the setting file inside the program (when such is specified).
@@ -202,11 +208,56 @@ We could then pass in the `!setting_file_location` wildcard like so:
 
 The value of `Parameters.output` would be `lord_of_the_rings/the_two_towers`. 
 
-Also note that command line arguments appear and are handled _exactly_ the same as parameter values inside the settings 
-file, including the `Enum` parameters, the `!setting_file_location` wildcard, and nested arguments (described below).
+Note that command line arguments appear and are handled _exactly_ the same as parameter values inside the settings 
+file, including the `Enum` parameters, the `!setting_file_location` wildcard, and nested arguments (described in Nested Parameter Support).
 
-Also, note that any subset of arguments can be provided from either or both sources, in which case the remaining 
-parameters will be set to default values.
+### Loading and Saving Defaults & Current Settings
+
+You can easily save a settings file filled with default values. Also, you can dump the current settings at any point 
+during the runtime of your application.  
+
+```Python
+from ext_argparse import ParameterEnum, save_defaults, process_arguments, dump
+from pathlib import Path
+from datetime import datetime
+class Parameters(ParameterEnum):
+    pass # // fill in to your heart's content -- see prior examples
+
+save_defaults(Parameters, Path("default_settings.yaml"), save_help_comments=False)
+process_arguments(Parameters, program_help_description="My favorite app that makes coffee.")
+timestamp = datetime.now().strftime('%y-%m-%d-%H-%M-%S')
+# save parameters after they've been processed
+dump(Parameters, Path(f"output/experiment_run_settings_{timestamp}"))
+```
+If you want the program to read a specific settings file by default, you can do so by passing a `default_settings_file` 
+to the process_arguments method:
+```Python
+process_arguments(Parameters, 
+                  program_help_description="My favorite app that makes coffee.",
+                  default_settings_file="coffee_settings.yaml")
+```
+
+If you like, you can even make the program generate the default settings file if it is missing 
+(useful, for example, for repository code):
+```Python
+process_arguments(Parameters, 
+                  program_help_description="My favorite app that makes coffee.", 
+                  default_settings_file="coffee_settings.yaml", 
+                  generate_default_settings_if_missing=True)
+```
+
+### Auto-generating Help Comments in Setting Files
+
+The settings file YAML supports (any number of) comments prepended by `#` before and after parameters. 
+You can place custom comments, but you can also save the parameter help as comments before each parameter when you save
+settings manually, e.g., for the example above, you can call the `dump` function like so instead:
+
+```Python
+dump(Parameters, Path(f"output/experiment_run_settings_{timestamp}"), save_help_comments=True, line_length_limit=120)
+```
+
+The `line_length_limit` allows you to control the length of the comments (which will be indented to match the nested 
+parameters they describe).
 
 ## Nested Parameter Support
 
