@@ -26,7 +26,7 @@ Features / characteristics of existing libraries and modules in comparison to **
 | Configuration file input         |          | **yes**      |         |          | **yes**   |          | **yes**  | **yes**          |
 | Configuration file output        |          | **yes**      |         |          |           |          |          | **yes**          |
 | Argument code-complete support   |          |              |         | **yes**  |           | **yes**  | **yes**  | **yes**          |
-| Argument documentation (--help)  | **yes**  |              |         |          |           | **yes**  |          | **yes**          |
+| Argument documentation (--help)  | **yes**  |              | **yes** |          |           | **yes**  |          | **yes**          |
 | Config-file comments             |          | **yes**      |         |          | **yes**   |          |          | **yes**          |
 | Nested arguments                 |          | **yes**      |         |          |           |          | **yes**  | **yes**          |
 | Nested commands                  |          |              |         |          |           | **yes**  |          |                  |

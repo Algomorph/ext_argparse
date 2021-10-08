@@ -196,6 +196,12 @@ class ArgumentProcessor(object):
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
+            elif enum_entry.parameter.type == 'positional':
+                parser.add_argument(base_name + enum_entry.name, action=enum_entry.parameter.action,
+                                    type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
+                                    required=enum_entry.parameter.required,
+                                    default=defaults[base_name + enum_entry.name],
+                                    help=enum_entry.parameter.help)
             elif isinstance(enum_entry.parameter.type, enum.EnumMeta):
                 parser.add_argument('--' + base_name + enum_entry.name,
                                     "-" + enum_entry.parameter.shorthand,

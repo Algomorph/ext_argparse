@@ -1,3 +1,4 @@
+import argparse
 import sys
 from dataclasses import dataclass, field, MISSING
 
@@ -37,7 +38,6 @@ class HedgehogParameters(ParameterCollection):
 
 def main():
     print(HedgehogParameters.dreams_and_wishes.dream_car)
-
     return PROGRAM_EXIT_SUCCESS
 
 

@@ -20,34 +20,25 @@ from typing import Union
 class Parameter(object):
     setting_file_location_wildcard = '!settings_file_location'
 
-    def __init__(self, default=None,
+    def __init__(self,
+                 default=None,
                  nargs='?',
                  arg_type: Union[str, type, enum.EnumMeta] = str,
                  action: str = 'store',
                  arg_help: str = "Documentation N/A",
                  console_only: bool = False,
                  required: bool = False,
-                 shorthand=None,
+                 shorthand: Union[None, str] = None,
                  setting_file_location: bool = False):
         """
-        @rtype: Parameter
-        @type default: object
         @param default: the default value
-        @type nargs: int | str
-        @param nargs: number of arguments. See python documentation for ArgumentParser.add_argument.
-        @type arg_type: type | str
+        @param nargs: number of arguments. See Python documentation for argparse.ArgumentParser.add_argument.
         @param arg_type: type of value to store after parsing. Use 'bool_flag' for a boolean flag / switch.
-        @type action: str | function
         @param action: action to perform with the argument value during parsing
-        @type arg_help: str
         @param arg_help: documentation for this argument
-        @type console_only: bool
         @param console_only: whether the argument is for console use only or for both config file & console
-        @type required: bool
         @param required: whether the argument is required
-        @type shorthand: str
         @param shorthand: acronym to use in the shorthand for the argument in the console
-        @type setting_file_location: bool
         @param setting_file_location: whether this parameter can use the setting file location wildcard
         (in which case, when set to the wildcard, the parameter value resolves to the full path to the settings
         file instead.)
@@ -67,6 +58,7 @@ class Parameter(object):
         self.setting_file_location = setting_file_location
         self.shorthand = shorthand
         self.value_map = None
+
         if type(self.type) == enum.EnumMeta:
             self.value_map = self.type._member_map_
             self.help = arg_help + "| Can be set to one of: " + str(list(self.value_map.keys()))
