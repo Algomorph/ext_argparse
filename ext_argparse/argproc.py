@@ -17,8 +17,9 @@ import io
 import sys
 from typing import Type, List, Union
 from io import StringIO
+import textwrap
 
-import ruamel.yaml.comments
+from ruamel.yaml.comments import CommentedMap
 
 from ext_argparse.parameter import Parameter
 from ext_argparse.param_enum import ParameterEnum
@@ -49,10 +50,10 @@ def unflatten_dict(dictionary: dict):
     return dict_out
 
 
-def flatten_dict(dictionary: Union[ruamel.yaml.comments.CommentedMap, dict]):
+def flatten_dict(dictionary: Union[CommentedMap, dict]):
     dict_out = {}
     for key, value in dictionary.items():
-        if type(value) == dict or type(value) == ruamel.yaml.comments.CommentedMap:
+        if type(value) == dict or type(value) == CommentedMap:
             flattened_sub_dict = flatten_dict(value)
             for sub_key, sub_value in flattened_sub_dict.items():
                 dict_out[key + "." + sub_key] = sub_value
@@ -61,13 +62,21 @@ def flatten_dict(dictionary: Union[ruamel.yaml.comments.CommentedMap, dict]):
     return dict_out
 
 
-def careful_update(target_map: ruamel.yaml.comments.CommentedMap, value_updates: dict):
+def careful_update(target_map: CommentedMap, value_updates: dict):
     for key, value in target_map.items():
         if key in value_updates:
-            if type(value) == ruamel.yaml.comments.CommentedMap:
+            if type(value) == CommentedMap:
                 careful_update(value, value_updates[key])
             else:
                 target_map[key] = value_updates[key]
+
+
+def nested_dict_to_commented_map(dictionary: dict) -> CommentedMap:
+    commented_map = CommentedMap(dictionary)
+    for key, value in commented_map.items():
+        if type(value) is dict:
+            commented_map[key] = nested_dict_to_commented_map(value)
+    return commented_map
 
 
 class ArgumentProcessor(object):
@@ -94,13 +103,13 @@ class ArgumentProcessor(object):
     save_settings_shorthand = "-ss"
 
     @staticmethod
-    def __get_setting_file_location_args_from_item(item, sfl_arg_collection: set, base_name=""):
-        if item.parameter.type == 'parameter_enum':
-            for sub_item in item.parameter:
+    def __get_setting_file_location_args_from_item(enum_entry: ParameterEnum, sfl_arg_collection: set, base_name=""):
+        if enum_entry.parameter.type == 'parameter_enum':
+            for sub_item in enum_entry.parameter:
                 ArgumentProcessor.__get_setting_file_location_args_from_item(sub_item, sfl_arg_collection,
-                                                                             base_name + item.name + ".")
-        elif item.parameter.setting_file_location:
-            sfl_arg_collection.add(base_name + item.name)
+                                                                             base_name + enum_entry.name + ".")
+        elif enum_entry.parameter.setting_file_location:
+            sfl_arg_collection.add(base_name + enum_entry.name)
 
     def __get_setting_file_location_args(self):
         sfl_arg_collection = set()
@@ -109,7 +118,7 @@ class ArgumentProcessor(object):
         return sfl_arg_collection
 
     @staticmethod
-    def __add_shorthand_for_param_enum_item(enum_entry, base_acronym: str = "") -> None:
+    def __add_shorthand_for_param_enum_item(enum_entry: ParameterEnum, base_acronym: str = "") -> None:
         if enum_entry.parameter.type == 'parameter_enum':
             sub_enum_acronym = generate_lc_acronym_from_snake_case(enum_entry.name)
             for sub_item in enum_entry.parameter:
@@ -122,7 +131,8 @@ class ArgumentProcessor(object):
             ArgumentProcessor.__add_shorthand_for_param_enum_item(item)
 
     @staticmethod
-    def __add_to_defaults_dict(enum_entry, defaults_dict: dict, convert_enums_to_strings, base_name: str = ""):
+    def __add_to_defaults_dict(enum_entry: ParameterEnum, defaults_dict: dict, convert_enums_to_strings,
+                               base_name: str = ""):
         if enum_entry.parameter.type == 'parameter_enum':
             for sub_enum_item in enum_entry.parameter:
                 ArgumentProcessor.__add_to_defaults_dict(sub_enum_item, defaults_dict, convert_enums_to_strings,
@@ -142,7 +152,7 @@ class ArgumentProcessor(object):
         return defaults_dict
 
     @staticmethod
-    def __add_to_value_dict(enum_entry, value_dict: dict, convert_enums_to_strings, base_name: str = ""):
+    def __add_to_value_dict(enum_entry: ParameterEnum, value_dict: dict, convert_enums_to_strings, base_name: str = ""):
         if enum_entry.parameter.type == 'parameter_enum':
             for sub_enum_item in enum_entry.parameter:
                 ArgumentProcessor.__add_to_value_dict(sub_enum_item, value_dict, convert_enums_to_strings,
@@ -180,8 +190,8 @@ class ArgumentProcessor(object):
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
-                parser.add_argument('--no-' + base_name + enum_entry.name,
-                                    "-n" + enum_entry.parameter.shorthand,
+                parser.add_argument('--' + base_name + "no-" + enum_entry.name,
+                                    "-n-" + enum_entry.parameter.shorthand,
                                     action='store_false',
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
@@ -276,26 +286,72 @@ class ArgumentProcessor(object):
         for enum_entry in self.parameter_enum:
             ArgumentProcessor.__post_process_enum_arg(enum_entry)
 
+    @staticmethod
+    def __add_parameter_help_to_commented_map(enum_entry: ParameterEnum, commented_map: CommentedMap, level: int,
+                                              tab_width: int, line_length_limit=None):
+        if enum_entry.name in commented_map:
+            if enum_entry.parameter.type == 'parameter_enum':
+                for sub_enum_entry in enum_entry.parameter:
+                    # can't fit much in less than 20 characters, just let the comment run 20 characters after
+                    new_line_length_limit = None if line_length_limit is None \
+                        else max(line_length_limit - tab_width * (level + 1), 20)
+                    ArgumentProcessor.__add_parameter_help_to_commented_map(sub_enum_entry,
+                                                                            commented_map[enum_entry.name],
+                                                                            level + 1, tab_width, new_line_length_limit)
+            else:
+                help_comment = enum_entry.parameter.help if line_length_limit is None else \
+                    "\n".join(textwrap.wrap(enum_entry.parameter.help, width=line_length_limit))
+                commented_map.yaml_set_comment_before_after_key(enum_entry.name, help_comment, indent=level * tab_width)
 
-def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str) -> None:
+    def add_help_as_comments_to_commented_map(self, commented_map: CommentedMap, tab_width=4, line_length_limit=120):
+        for enum_entry in self.parameter_enum:
+            ArgumentProcessor.__add_parameter_help_to_commented_map(enum_entry, commented_map, 0, tab_width,
+                                                                    line_length_limit)
+
+
+def __dump_argument_dict(arguments: Union[dict, CommentedMap],
+                         stream: Union[io.StringIO, io.FileIO, io.TextIOWrapper, io.TextIOBase, Path],
+                         tab_width: int = 4):
+    yaml = YAML(typ='rt')
+    yaml.indent = tab_width
+    yaml.default_flow_style = False
+    yaml.dump(arguments, stream)
+
+
+def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str, save_help_comments: bool = False,
+                  tab_width: int = 4, line_length_limit: int = 120) -> None:
     processor = ArgumentProcessor(program_arguments_enum)
     defaults = unflatten_dict(processor.generate_defaults_dict(convert_enums_to_strings=True))
     del defaults[ArgumentProcessor.save_settings_parameter_name]
     del defaults[ArgumentProcessor.settings_file_parameter_name]
-    yaml = YAML(typ='rt')
-    yaml.indent = 4
-    yaml.default_flow_style = False
-    yaml.dump(defaults, Path(destination_path))
+    if save_help_comments:
+        defaults = nested_dict_to_commented_map(defaults)
+        processor.add_help_as_comments_to_commented_map(defaults, tab_width=tab_width,
+                                                        line_length_limit=line_length_limit)
+    __dump_argument_dict(defaults, Path(destination_path), tab_width)
 
 
 def dump(program_arguments_enum: Type[ParameterEnum],
-         stream: Union[io.StringIO, io.FileIO, io.TextIOWrapper] = sys.stdout):
+         stream: Union[io.StringIO, io.FileIO, io.TextIOWrapper, io.TextIOBase, Path] = sys.stdout,
+         save_help_comments: bool = False, tab_width: int = 4, line_length_limit: int = 120):
     processor = ArgumentProcessor(program_arguments_enum)
     values = unflatten_dict(processor.generate_value_dict(convert_enums_to_strings=True))
+    if save_help_comments:
+        values = nested_dict_to_commented_map(values)
+        processor.add_help_as_comments_to_commented_map(values, tab_width=tab_width,
+                                                        line_length_limit=line_length_limit)
+    __dump_argument_dict(values, stream, tab_width)
+
+
+def add_comments_from_help(program_arguments_enum: Type[ParameterEnum],
+                           stream: Union[io.StringIO, io.FileIO, io.TextIOWrapper, io.TextIOBase, Path] = sys.stdout,
+                           tab_width: int = 4, line_length_limit: int = 120):
     yaml = YAML(typ='rt')
-    yaml.indent = 4
-    yaml.default_flow_style = False
-    yaml.dump(values, stream)
+    yaml.indent = tab_width
+    arguments = yaml.load(stream)
+    processor = ArgumentProcessor(program_arguments_enum)
+    processor.add_help_as_comments_to_commented_map(arguments, tab_width=tab_width, line_length_limit=line_length_limit)
+    yaml.dump(arguments, stream)
 
 
 def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_description: str,

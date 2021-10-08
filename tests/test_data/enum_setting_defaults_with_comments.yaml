@@ -1,0 +1,14 @@
+# Sturdiness of the house.
+sturdiness: 5.0
+# The year the house was built.
+year_built: 2000
+roof:
+    # The last year when the roof tiles were changed.
+    year_changed: 2010
+    # Material of the roof tiles.| Can be set to one of: ['SLATE', 'METAL', 'CONCRETE', 'COMPOSITE',
+    # 'SOLAR', 'CLAY', 'SYNTHETIC_BARREL', 'SYNTHETIC_SLATE', 'SYNTHETIC_CEDAR']
+    roof_material: SLATE
+# Style of da house.| Can be set to one of: ['CRAFTSMAN_BUNGALO', 'CAPE_COD', 'RANCH', 'CONTEMPORARY',
+# 'QUEEN_ANNE', 'COLONIAL_REVIVAL', 'TUDOR_REVIVAL', 'TOWNHOUSE', 'PRAIRIE', 'MID_CENTURY_MODERN',
+# 'NEOCLASSICAL', 'MEDITERRANEAN']
+style: CRAFTSMAN_BUNGALO

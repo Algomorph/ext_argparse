@@ -1,8 +1,14 @@
 # comment
+# comment 2:
+# comment 3.
 analyze_only: false
 convert_telemetry: false
 data_term_amplifier: 1.0
+# dataset_number comment 1
+# dataset_number comment 2
+# dataset_number comment 3
 dataset_number: 1
+# a third comment
 filtering_method: BILINEAR
 generate_data: false
 generation_case_file:

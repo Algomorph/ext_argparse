@@ -8,12 +8,15 @@ group_b:
     int_param: 8
     float_param: 0.1
 group_c:
+    #c.string_param comment 1
     string_param: Constantinople
     int_param: 9
     float_param: 0.1
 group_d:
     int_param: 9
     group_a:
+        #d.a.string_param comment 1
+        #d.a.string_param comment 2
         string_param: Istanbul
         int_param: 8
         float_param: 0.32

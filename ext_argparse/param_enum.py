@@ -1,7 +1,4 @@
 from enum import Enum, EnumMeta, _EnumDict
-from types import DynamicClassAttribute
-
-EnumMetaFeta = type("EnumMetaFeta", (), dict(EnumMeta.__dict__))
 
 
 class NestedEnumMeta(EnumMeta):
@@ -18,6 +15,7 @@ class NestedEnumMeta(EnumMeta):
             enum_dict['_generate_next_value_'] = getattr(
                 first_enum, '_generate_next_value_', None,
             )
+
         return enum_dict
 
     def __new__(metacls, cls, bases, classdict):
@@ -41,6 +39,7 @@ class NestedEnumMeta(EnumMeta):
             delattr(enum_class, key)
             setattr(enum_class, key, member.parameter)
             enum_class._member_map_[key] = member.parameter
+
         return enum_class
 
     def __iter__(cls):
