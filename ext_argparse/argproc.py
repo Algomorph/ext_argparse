@@ -170,7 +170,7 @@ class ArgumentProcessor(object):
         return value_dict
 
     @staticmethod
-    def __add_parameter_enum_entry_to_parser(enum_entry: Union[Parameter, ParameterEnum],
+    def __add_parameter_enum_entry_to_parser(enum_entry: ParameterEnum,
                                              parser: argparse.ArgumentParser, defaults: dict, console_only: bool,
                                              base_name: str = "") \
             -> None:
@@ -196,12 +196,6 @@ class ArgumentProcessor(object):
                                     default=defaults[base_name + enum_entry.name],
                                     required=enum_entry.parameter.required,
                                     help=enum_entry.parameter.help)
-            elif enum_entry.parameter.type == 'positional':
-                parser.add_argument(base_name + enum_entry.name, action=enum_entry.parameter.action,
-                                    type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
-                                    required=enum_entry.parameter.required,
-                                    default=defaults[base_name + enum_entry.name],
-                                    help=enum_entry.parameter.help)
             elif isinstance(enum_entry.parameter.type, enum.EnumMeta):
                 parser.add_argument('--' + base_name + enum_entry.name,
                                     "-" + enum_entry.parameter.shorthand,
@@ -211,13 +205,19 @@ class ArgumentProcessor(object):
                                     default=defaults[base_name + enum_entry.name],
                                     help=enum_entry.parameter.help)
             else:
-                parser.add_argument('--' + base_name + enum_entry.name,
-                                    "-" + enum_entry.parameter.shorthand,
-                                    action=enum_entry.parameter.action,
-                                    type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
-                                    required=enum_entry.parameter.required,
-                                    default=defaults[base_name + enum_entry.name],
-                                    help=enum_entry.parameter.help)
+                if enum_entry.parameter.positional:
+                    parser.add_argument(base_name + enum_entry.name, action=enum_entry.parameter.action,
+                                        type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
+                                        default=defaults[base_name + enum_entry.name],
+                                        help=enum_entry.parameter.help)
+                else:
+                    parser.add_argument('--' + base_name + enum_entry.name,
+                                        "-" + enum_entry.parameter.shorthand,
+                                        action=enum_entry.parameter.action,
+                                        type=enum_entry.parameter.type, nargs=enum_entry.parameter.nargs,
+                                        required=enum_entry.parameter.required,
+                                        default=defaults[base_name + enum_entry.name],
+                                        help=enum_entry.parameter.help)
 
     def generate_parser(self, defaults: dict, console_only: bool = False, description: str = "Description N/A",
                         parents: Union[List[argparse.ArgumentParser], None] = None) -> argparse.ArgumentParser:

@@ -29,7 +29,8 @@ class Parameter(object):
                  console_only: bool = False,
                  required: bool = False,
                  shorthand: Union[None, str] = None,
-                 setting_file_location: bool = False):
+                 setting_file_location: bool = False,
+                 positional: bool = False):
         """
         @param default: the default value
         @param nargs: number of arguments. See Python documentation for argparse.ArgumentParser.add_argument.
@@ -58,6 +59,9 @@ class Parameter(object):
         self.setting_file_location = setting_file_location
         self.shorthand = shorthand
         self.value_map = None
+        if arg_type == "bool_flag" and positional:
+            raise ValueError("arg_type='bool_flag' and positional=True cannot be combined.")
+        self.positional = positional
 
         if type(self.type) == enum.EnumMeta:
             self.value_map = self.type._member_map_

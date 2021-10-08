@@ -10,6 +10,8 @@ from io import StringIO
 
 
 class Parameters(ParameterEnum):
+    person_in_charge = Parameter(arg_type=str, positional=True)
+
     # optimizer settings
     tikhonov_term_enabled = Parameter(action="store_true", default=False, arg_type='bool_flag')
     gradient_kernel_enabled = Parameter(action="store_true", default=False, arg_type='bool_flag')
@@ -80,7 +82,7 @@ def description_string():
 
 
 def test_default_parameters(description_string):
-    process_arguments(Parameters, description_string, argv=[])
+    process_arguments(Parameters, description_string, argv=["Greg"])
 
     assert not Parameters.tikhonov_term_enabled.value
     assert not Parameters.analyze_only.value
@@ -91,7 +93,8 @@ def test_default_parameters(description_string):
 
 
 def test_full_length_parameters(description_string):
-    process_arguments(Parameters, description_string, argv=["--tikhonov_term_enabled",
+    process_arguments(Parameters, description_string, argv=["Greg",
+                                                            "--tikhonov_term_enabled",
                                                             "--analyze_only",
                                                             "--output_path=output/lo",
                                                             "--filtering_method=BILINEAR",
@@ -108,7 +111,8 @@ def test_full_length_parameters(description_string):
 
 
 def test_shorthand_parameters(description_string):
-    process_arguments(Parameters, description_string, argv=["-tte",
+    process_arguments(Parameters, description_string, argv=["Greg",
+                                                            "-tte",
                                                             "-ao",
                                                             "-op=output/lo",
                                                             "-fm=BILINEAR",
@@ -125,21 +129,21 @@ def test_shorthand_parameters(description_string):
 
 
 @pytest.fixture
-def test_data_dir():
+def data_dir():
     return os.path.join(pathlib.Path(__file__).parent.resolve(), "test_data")
 
 
-def test_save_parameters(test_data_dir, description_string):
-    output_settings_path = os.path.join(test_data_dir, "settings.yaml")
+def test_save_parameters(data_dir, description_string):
+    output_settings_path = os.path.join(data_dir, "settings.yaml")
     # save default settings first
-    process_arguments(Parameters, description_string,
-                      argv=[f"--settings_file={output_settings_path}",
-                            "--save_settings",
-                            "-op=output/ho",
-                            "-fm=NONE",
-                            "-mwut=0.01",
-                            "-mcs=8",
-                            ])
+    x = process_arguments(Parameters, description_string,
+                          argv=[f"--settings_file={output_settings_path}",
+                                "--save_settings",
+                                "-op=output/ho",
+                                "-fm=NONE",
+                                "-mwut=0.01",
+                                "-mcs=8",
+                                ])
 
     assert Parameters.output_path.value == "output/ho"
     assert Parameters.filtering_method.value == "NONE"
@@ -170,14 +174,14 @@ def test_save_parameters(test_data_dir, description_string):
     assert Parameters.maximum_chunk_size.value == 10
 
 
-def test_default_settings_file(test_data_dir, description_string):
-    default_settings_path = os.path.join(test_data_dir, "default_settings.yaml")
+def test_default_settings_file(data_dir, description_string):
+    default_settings_path = os.path.join(data_dir, "default_settings.yaml")
     process_arguments(Parameters, description_string,
                       argv=["-fm=BILINEAR",
                             "-mwut=0.03",
                             "-mcs=5",
                             ], default_settings_file=default_settings_path)
-    default_settings2_path = os.path.join(test_data_dir, "default_settings2.yaml")
+    default_settings2_path = os.path.join(data_dir, "default_settings2.yaml")
     if os.path.exists(default_settings2_path):
         os.unlink(default_settings2_path)
 
@@ -232,6 +236,7 @@ def test_dump_parameters(description_string):
 
     ground_truth_string = \
         """
+        person_in_charge:
         tikhonov_term_enabled: true
         gradient_kernel_enabled: false
         maximum_warp_update_threshold: 0.005

@@ -34,9 +34,6 @@ Features / characteristics of existing libraries and modules in comparison to **
 | Avoids duplicating names in code | kind-of  |              | kind-of | **yes**  | kind-of   |          | **yes**  | **yes**          |
 | Avoids magic strings             | kind-of  |              |         | **yes**  |           | **yes**  | **yes**  | **yes**          |
 
-I should note that positional arguments are currently not supported in `ext_argparse`, and that is a major limitation 
-(and easy fix) that, I think, should be addressed soon.
-
 Another difference that also deserves note here is that `ext_argparse` currently supports configuration file IO *only* 
 in [YAML](https://yaml.org/) format. Support for config file comments (via the `ruamel.yaml` package) may be easily 
 integrated, as well as backends for other popular formats, such as [TOML](https://github.com/toml-lang/toml) and
