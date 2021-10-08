@@ -253,7 +253,8 @@ You can place custom comments, but you can also save the parameter help as comme
 settings manually, e.g., for the example above, you can call the `dump` function like so instead:
 
 ```Python
-dump(Parameters, Path(f"output/experiment_run_settings_{timestamp}"), save_help_comments=True, line_length_limit=120)
+dump(Parameters, Path(f"output/experiment_run_settings_{timestamp}"), 
+     save_help_comments=True, line_length_limit=120)
 ```
 
 The `line_length_limit` allows you to control the length of the comments (which will be indented to match the nested 
