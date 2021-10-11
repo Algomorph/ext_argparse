@@ -13,7 +13,7 @@ def test_save_defaults(test_data_dir):
         to_remove = Path(output_settings_path)
         to_remove.unlink()
 
-    save_defaults(HouseParameters, output_settings_path)
+    save_defaults(HouseParameters, output_settings_path, save_help_comments=False)
 
     HouseParameters.sturdiness.argument = 10.0
     HouseParameters.year_built.argument = 2002

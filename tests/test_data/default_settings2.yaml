@@ -1,29 +1,62 @@
+# Documentation N/A
 person_in_charge:
+# Documentation N/A
 tikhonov_term_enabled: false
+# Documentation N/A
 gradient_kernel_enabled: false
+# Documentation N/A
 maximum_warp_update_threshold: 0.02
+# Documentation N/A
 maximum_iteration_count: 1000
+# Documentation N/A
 maximum_chunk_size: 9
+# Documentation N/A
 rate: 0.1
+# Documentation N/A
 data_term_amplifier: 1.0
+# Documentation N/A
 tikhonov_strength: 0.2
+# Documentation N/A
 kernel_size: 7
+# Documentation N/A
 kernel_strength: 0.1
+# Strategy for upsampling the warps and downsampling the pyramidin the C++ version of the optimizer, can be either
+# NEAREST_AND_AVERAGE or LINEAR
 resampling_strategy: NEAREST_AND_AVERAGE
+# Documentation N/A
 filtering_method: BILINEAR
+# Documentation N/A
 smoothing_coefficient: 0.5
+# Documentation N/A
 dataset_number: 1
+# Documentation N/A
 implementation_language: CPP
+# Documentation N/A
 output_path: output/ho
+# Generate data for the set of frames & pixel rows specified in this .csv file. Format is <frame_index>,<pixel row
+# index>,<focus coordinate x>, <focus coordinate y>.
 generation_case_file:
+# Run optimizer only on the set of frames & pixel rows specified in this .csv file (assuming they are also present in the
+# specified dataset). Format is <frame_index>,<pixel row index>,<focus coordinate x>, <focus coordinate y>.
 optimization_case_file:
+# Additional subfolder name to append to the output directory (useful when saving results for a whole series)
 series_result_subfolder:
+# Skip anything by the final analysis (and only do that if corresponding output file is available). Supersedes any other
+# option that deals with data generation / optimization.
 analyze_only: false
+# Documentation N/A
 generate_data: false
+# Documentation N/A
 skip_optimization: false
+# Documentation N/A
 save_initial_fields_during_generation: false
+# save the initial canonical & live and final live field during the optimization
 save_initial_and_final_fields: false
+# Documentation N/A
 save_telemetry: false
+# Convert telemetry to videos
 convert_telemetry: false
+# Documentation N/A
 stop_before_index: 10000000
+# Documentation N/A
 start_from_index: 0

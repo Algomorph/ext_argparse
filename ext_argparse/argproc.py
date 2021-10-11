@@ -324,7 +324,7 @@ def __dump_argument_dict(arguments: Union[dict, CommentedMap],
     yaml.dump(arguments, stream)
 
 
-def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str, save_help_comments: bool = False,
+def save_defaults(program_arguments_enum: Type[ParameterEnum], destination_path: str, save_help_comments: bool = True,
                   tab_width: int = 4, line_length_limit: int = 120) -> None:
     processor = ArgumentProcessor(program_arguments_enum)
     defaults = unflatten_dict(processor.generate_defaults_dict(convert_enums_to_strings=True))
