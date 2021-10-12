@@ -62,11 +62,11 @@ def flatten_dict(dictionary: Union[CommentedMap, dict]):
     return dict_out
 
 
-def careful_update(target_map: CommentedMap, value_updates: dict):
+def nested_update(target_map: dict, value_updates: dict):
     for key, value in target_map.items():
         if key in value_updates:
-            if type(value) == CommentedMap:
-                careful_update(value, value_updates[key])
+            if isinstance(value, dict):
+                nested_update(value, value_updates[key])
             else:
                 target_map[key] = value_updates[key]
 
@@ -266,19 +266,33 @@ class ArgumentProcessor(object):
         return parser
 
     @staticmethod
-    def __fill_parameter_enum_values(argument_dictionary: dict, parameter_enum: Type[ParameterEnum],
-                                     base_name: str = ""):
+    def fill_parameter_enum_values_from_flat_dict(argument_flat_dictionary: dict, parameter_enum: Type[ParameterEnum],
+                                                  base_name: str = ""):
         for enum_entry in parameter_enum:
             if enum_entry.parameter.type == 'parameter_enum':
-                ArgumentProcessor.__fill_parameter_enum_values(argument_dictionary, enum_entry.parameter,
-                                                               base_name + enum_entry.name + ".")
+                ArgumentProcessor.fill_parameter_enum_values_from_flat_dict(argument_flat_dictionary,
+                                                                            enum_entry.parameter,
+                                                                            base_name + enum_entry.name + ".")
             else:
                 full_param_path = base_name + enum_entry.name
-                if full_param_path in argument_dictionary:
-                    enum_entry.__dict__["argument"] = argument_dictionary[full_param_path]
+                if full_param_path in argument_flat_dictionary:
+                    enum_entry.__dict__["argument"] = argument_flat_dictionary[full_param_path]
 
-    def set_values_from_flat_dict(self, argument_dictionary: dict):
-        ArgumentProcessor.__fill_parameter_enum_values(argument_dictionary, self.parameter_enum)
+    def set_values_from_flat_dict(self, argument_flat_dictionary: dict):
+        ArgumentProcessor.fill_parameter_enum_values_from_flat_dict(argument_flat_dictionary, self.parameter_enum)
+
+    @staticmethod
+    def fill_parameters_enum_values_from_dict(argument_dictionary: dict, parameter_enum: Type[ParameterEnum]):
+        for enum_entry in parameter_enum:
+            if enum_entry.name in argument_dictionary:
+                if enum_entry.parameter.type == 'parameter_enum':
+                    ArgumentProcessor.fill_parameters_enum_values_from_dict(
+                        argument_dictionary[enum_entry.name], enum_entry.parameter)
+                else:
+                    enum_entry.__dict__["argument"] = argument_dictionary[enum_entry.name]
+
+    def set_values_from_dict(self, argument_dictionary: dict):
+        ArgumentProcessor.fill_parameters_enum_values_from_dict(argument_dictionary, self.parameter_enum)
 
     @staticmethod
     def __post_process_enum_arg(enum_entry):
@@ -361,7 +375,9 @@ def add_comments_from_help(program_arguments_enum: Type[ParameterEnum],
 
 
 def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_description: str,
-                      default_settings_file=None, generate_default_settings_if_missing=False, argv: List[str] = None) \
+                      default_settings_file: Union[None, str] = None,
+                      generate_default_settings_if_missing: bool = False,
+                      argv: Union[List[str], None] = None) \
         -> argparse.Namespace:
     processor = ArgumentProcessor(program_arguments_enum)
     defaults = processor.generate_defaults_dict()
@@ -373,9 +389,10 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
     yaml.indent = 4
     yaml.default_flow_style = False
 
-    # ============== STORAGE/RETRIEVAL OF CONSOLE SETTINGS ===========================================#
+    # first, parse any console-only arguments
     args, remaining_argv = console_only_parser.parse_known_args(argv)
 
+    # load the default settings file if need be, auto-generate it if such behavior is requested
     if not args.settings_file and default_settings_file is not None:
         args.settings_file = default_settings_file
         if generate_default_settings_if_missing and not Path(default_settings_file).exists():
@@ -383,6 +400,7 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
 
     defaults[ArgumentProcessor.save_settings_parameter_name] = args.save_settings
 
+    # update defaults from the settings/config file (if any)
     if args.settings_file:
         defaults[ArgumentProcessor.settings_file_parameter_name] = args.settings_file
         if os.path.isfile(args.settings_file):
@@ -395,9 +413,14 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
             if not args.save_settings:
                 raise ValueError("Settings file not found at: {0:s}".format(args.settings_file))
 
+    # parse the rest of the command-line arguments into a separate namespace
     parser = processor.generate_parser(defaults, parents=[console_only_parser])
     args = parser.parse_args(remaining_argv)
 
+    # TODO: improve wildcard handling to:
+    #  (1) provide generic wildcards for any string arguments
+    #  (2) replace a wildcard in substring with it's corresponding string argument
+    #  (3) handle wildcards in settings file arguments here as well, not just in process_settings
     # process "special" setting values
     keys_with_sfl_wildcard_set = set()
     if args.settings_file and os.path.isfile(args.settings_file):
@@ -426,7 +449,7 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
         del unflattened_argument_dict[ArgumentProcessor.save_settings_parameter_name]
         del unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name]
 
-        careful_update(settings, unflattened_argument_dict)
+        nested_update(settings, unflattened_argument_dict)
 
         yaml.dump(settings, config_path)
 
@@ -434,3 +457,38 @@ def process_arguments(program_arguments_enum: Type[ParameterEnum], program_help_
         unflattened_argument_dict[ArgumentProcessor.settings_file_parameter_name] = True
 
     return args
+
+
+def process_settings_file(program_arguments_enum: Type[ParameterEnum],
+                          settings_file: str, generate_default_settings_if_missing: bool = False) \
+        -> dict:
+    processor = ArgumentProcessor(program_arguments_enum)
+    parameter_values = unflatten_dict(processor.generate_defaults_dict())
+
+    yaml = YAML(typ='rt')
+    yaml.indent = 4
+    yaml.default_flow_style = False
+
+    # load the default settings file if need be, auto-generate it if such behavior is requested
+    if generate_default_settings_if_missing and not Path(settings_file).exists():
+        save_defaults(program_arguments_enum, settings_file)
+
+    # update values from the settings/config file
+    if os.path.isfile(settings_file):
+        loaded_values = yaml.load(Path(settings_file))
+        nested_update(parameter_values, loaded_values)
+    else:
+        raise ValueError("Settings file not found at: {0:s}".format(settings_file))
+
+    # process "special" setting values
+    keys_with_sfl_wildcard_set = set()
+    for key in parameter_values.keys():
+        if key in processor.setting_file_location_args and parameter_values[key] == \
+                Parameter.setting_file_location_wildcard:
+            parameter_values[key] = os.path.dirname(settings_file)
+            keys_with_sfl_wildcard_set.add(key)
+
+    processor.set_values_from_dict(parameter_values)
+    processor.post_process_enum_args()
+
+    return parameter_values

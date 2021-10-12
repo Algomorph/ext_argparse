@@ -4,7 +4,17 @@ from pathlib import Path
 
 from tests.common import HouseParameters, HouseStyle, RoofMaterial, test_data_dir
 
-from ext_argparse.argproc import process_arguments, save_defaults, dump, add_comments_from_help
+from ext_argparse.argproc import process_arguments, save_defaults, dump, add_comments_from_help, process_settings_file
+
+
+def test_process_settings_file_with_generate_defaults(test_data_dir):
+    output_settings_path = os.path.join(test_data_dir, "enum_setting_defaults3.yaml")
+    process_settings_file(HouseParameters, output_settings_path, generate_default_settings_if_missing=True)
+    assert HouseParameters.sturdiness.value == 5.0
+    assert HouseParameters.year_built.value == 2000
+    assert HouseParameters.roof.year_changed.value == 2010
+    assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
+    assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
 
 
 def test_save_defaults(test_data_dir):

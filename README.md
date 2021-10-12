@@ -246,7 +246,7 @@ process_arguments(Parameters,
                   generate_default_settings_if_missing=True)
 ```
 
-### Auto-generating Help Comments in Setting Files
+### Auto-Generating Help Comments in Setting Files
 
 The settings file YAML supports (any number of) comments prepended by `#` before and after parameters. 
 You can place custom comments, but you can also save the parameter help as comments before each parameter when you save

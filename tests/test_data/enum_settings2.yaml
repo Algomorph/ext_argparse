@@ -1,0 +1,6 @@
+roof:
+    # the year the roof was last changed
+    year_changed: 1995
+sturdiness: 4.5
+style: QUEEN_ANNE
+year_built: 1965

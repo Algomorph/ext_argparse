@@ -13,5 +13,5 @@ testpaths = [
     "tests/parameter_tests.py",
     "tests/enum_parameter_tests.py",
     "tests/nested_parameter_tests.py",
-    "tests/config_io_tests.py"
+    "tests/config_output_tests.py"
 ]

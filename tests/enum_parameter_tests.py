@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from ext_argparse.argproc import process_arguments
+from ext_argparse.argproc import process_arguments, process_settings_file
 
 from tests.common import HouseParameters, HouseStyle, RoofMaterial, test_data_dir
 
@@ -103,4 +103,14 @@ def test_nested_parameter_save_load(test_data_dir):
     assert HouseParameters.year_built.value == 2000
     assert HouseParameters.roof.year_changed.value == 2010
     assert HouseParameters.style.value == HouseStyle.CRAFTSMAN_BUNGALO
+    assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
+
+
+def test_process_settings_file(test_data_dir):
+    settings_path = os.path.join(test_data_dir, "enum_settings2.yaml")
+    process_settings_file(HouseParameters, settings_path, generate_default_settings_if_missing=False)
+    assert HouseParameters.sturdiness.value == 4.5
+    assert HouseParameters.year_built.value == 1965
+    assert HouseParameters.roof.year_changed.value == 1995
+    assert HouseParameters.style.value == HouseStyle.QUEEN_ANNE
     assert HouseParameters.roof.roof_material.value == RoofMaterial.SLATE
