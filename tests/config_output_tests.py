@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tests.common import HouseParameters, HouseStyle, RoofMaterial, test_data_dir
 
-from ext_argparse.argproc import process_arguments, save_defaults, dump, add_comments_from_help, process_settings_file
+from ext_argparse import process_arguments, save_defaults, dump, add_comments_from_help, process_settings_file
 
 
 def test_process_settings_file_with_generate_defaults(test_data_dir):

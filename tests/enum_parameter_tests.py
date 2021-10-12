@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from ext_argparse.argproc import process_arguments, process_settings_file
+from ext_argparse import process_arguments, process_settings_file
 
 from tests.common import HouseParameters, HouseStyle, RoofMaterial, test_data_dir
 
